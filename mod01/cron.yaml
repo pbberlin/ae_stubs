@@ -1,0 +1,7 @@
+cron:
+- description: daily summary job
+  url: /namespaced-counters/queue-inc
+  schedule: every 24 hours
+- description: monday morning mailout
+  url: /namespaced-counters/direct-inc
+  schedule: every monday 09:00
