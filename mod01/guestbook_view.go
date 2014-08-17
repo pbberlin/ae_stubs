@@ -8,10 +8,11 @@ import (
     
 
 	 sc "github.com/pbberlin/tools/sharded_counter"
-	"github.com/pbberlin/tools/util_err"
+	"github.com/pbberlin/tools/u_err"
 	
 	 
 )
+
 
 
 func guestEntry(w http.ResponseWriter, r *http.Request) {
@@ -39,10 +40,12 @@ func guestView(w http.ResponseWriter, r *http.Request) {
 
 
    c := appengine.NewContext(r)
-	err := sc.Increment(c, "cGuestView" )
+	err := sc.Increment(c, "n_visitors_guestbook" )
 	util_err.Err_log(err)
+
+
 	
-	cntr, err := sc.Count(c, "cGuestView" ); util_err.Err_log(err)
+	cntr, err := sc.Count(c, "n_visitors_guestbook" ); util_err.Err_log(err)
 	s_cntr := fmt.Sprint("<br>Counter Guest View is -",cntr,"-<br>\n")
 
 	
@@ -55,10 +58,7 @@ func guestView(w http.ResponseWriter, r *http.Request) {
 	}
 	myTplExecute(w,mc,c_content_2, gbEntries)
 
-
-
 }
-
 
 
 

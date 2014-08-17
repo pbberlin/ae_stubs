@@ -24,9 +24,9 @@ import (
 	"os"
 	"log"
 
-	"github.com/pbberlin/tools"
+	"github.com/pbberlin/tools/util"
 	"github.com/pbberlin/tools/conv"
-	"github.com/pbberlin/tools/util_err"
+	"github.com/pbberlin/tools/u_err"
 	
 )
 
@@ -345,7 +345,7 @@ func base64_from_var(w http.ResponseWriter, r *http.Request) {
 
 
 func imageCache(w http.ResponseWriter, r *http.Request, dir , base string, c appengine.Context) {
-	dsObj, _  := conv.Buf_get(c , "conv.SWrapp_chart1")
+	dsObj, _  := util.Buf_get(c , "util.WrapBlob_chart1")
 	buff1, _  := conv.Vvbyte_to_string(dsObj.Vvbyte)
 	
 	img,whichformat := conv.Base64_str_to_img( buff1.String()  )	
@@ -491,9 +491,9 @@ func imageServe(w http.ResponseWriter, r *http.Request) {
 				//c.Infof("%v", str_b64_img[:100])
 
 				vvbyte,_     := conv.String_to_vvbyte(str_b64_img)
-				key_combi,_  := conv.Buf_put(c , conv.SWrapp{"chart1",vvbyte} , "chart1" )
+				key_combi,_  := util.Buf_put(c , util.WrapBlob{"chart1",vvbyte} , "chart1" )
 
-				dsObj,_  := conv.Buf_get(c , key_combi)
+				dsObj,_  := util.Buf_get(c , key_combi)
 				buff1,_  := conv.Vvbyte_to_string(dsObj.Vvbyte)
 
 				img,whichformat := conv.Base64_str_to_img( buff1.String()  )	

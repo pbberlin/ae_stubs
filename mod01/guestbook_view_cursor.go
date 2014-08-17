@@ -68,18 +68,18 @@ func guestViewCursor(w http.ResponseWriter, r *http.Request) {
 	str_c_end := cur_end.String()   //  inverse is decode()
 	val := []byte( str_c_end )
 
-		mi_save :=	&memcache.Item{
-		 Key:   "greeting_cursor",
-		 Value: val,
- 			Expiration: 60 * time.Second,
+	mi_save :=	&memcache.Item{
+		Key:   "greeting_cursor",
+		Value: val,
+ 		Expiration: 60 * time.Second,
 	}
 
 
-		if err := memcache.Set(c, mi_save); err != nil {
-			b1.WriteString("error adding memcache item " +  err.Error() + "<br>\n")
-		} else {
-  		 b1.WriteString("wrote cursor to memcache -" + str_c_end[:10] + "..." +  str_c_end[len(str_c_end)-10:] + "-<br>\n")
-		}
+	if err := memcache.Set(c, mi_save); err != nil {
+		b1.WriteString("error adding memcache item " +  err.Error() + "<br>\n")
+	} else {
+	 b1.WriteString("wrote cursor to memcache -" + str_c_end[:10] + "..." +  str_c_end[len(str_c_end)-10:] + "-<br>\n")
+	}
 
 
 	} else {

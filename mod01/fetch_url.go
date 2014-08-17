@@ -9,7 +9,7 @@ import (
 	
 	"io/ioutil"	
 	"html"
-	"github.com/pbberlin/tools"
+	"github.com/pbberlin/tools/util"
 	
 )
 

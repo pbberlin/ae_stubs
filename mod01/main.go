@@ -11,7 +11,7 @@ import (
 	"bytes"
  	"io/ioutil"	
 	"io"
-	"github.com/pbberlin/tools"
+	"github.com/pbberlin/tools/util"
 	 
 )
 

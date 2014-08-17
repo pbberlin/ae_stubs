@@ -10,7 +10,7 @@ import (
 	"bytes"
 
 	"github.com/pbberlin/tools/conv"
-	"github.com/pbberlin/tools"
+	"github.com/pbberlin/tools/util"
 
 )
 
@@ -47,9 +47,9 @@ func Test_put_get(t *testing.T){
 
 
 	vvbyte,_     := conv.String_to_vvbyte(str_b64)
-	key_combi, _ := conv.Buf_put(c , conv.SWrapp{"test",vvbyte} , "test" )
+	key_combi, _ := util.Buf_put(c , util.WrapBlob{"test",vvbyte} , "test" )
 
-	sw, _    := conv.Buf_get(c , key_combi)
+	sw, _    := util.Buf_get(c , key_combi)
 	
 	if debug {
 		for i,v := range 	sw.Vvbyte {
@@ -117,7 +117,7 @@ func Test_string_to_vvbyte_and_back(t *testing.T) {
 
 
 
-
+/*
 // UNUSED
 // long string to map of sbyte
 //   two inverse functions
@@ -147,8 +147,102 @@ func Test_string_to_mapvbyte_and_back(t *testing.T) {
 
 
 }
+*/
+
+
+type SomeStruct struct {
+	S1 string `json:"s1"`
+	S2 string `json:"s2"`	
+}
+
+
+func Test_memcache_get_set(t *testing.T) {
+
+	c, err := aetest.NewContext(nil)	
+	if err != nil {
+		t.Errorf("could not get a context")		
+	}
+
+
+	rvb1  , ok := util.Mcache_get(c,"key1",  &SomeStruct{} )
+	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rvb1,rvb1,ok)    }
+
+
+	rvb2  , ok := util.Mcache_get(c,"key2",  "string" )
+	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rvb2,rvb2,ok)    } 
+
+	rvb3  , ok := util.Mcache_get(c,"key3",  22323 )
+	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rvb3,rvb3,ok)    } 
+
+	
+
+	util.Mcache_set(c,"key1","just a scalar stupid string")
+
+
+	myStruct1 := SomeStruct{"this content","is structured"}
+	util.Mcache_set(c,"key2",myStruct1)
+	
+
+	myStruct2 := SomeStruct{"wonderbar","is not wonderbra"}
+	util.Mcache_set(c,"key3",myStruct2)
+	
+
+	rva1  , ok := util.Mcache_get(c,"key1",  "string" )
+	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rva1,rva1,ok)    } 
+
+
+	rva2  , ok := util.Mcache_get(c,"key1",  22323 )
+	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rva2,rva2,ok)    } 
+
+
+	rva3  , ok := util.Mcache_get(c,"key2",  "string" )
+	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rva3,rva3,ok)    } 
+
+
+	
+	rva4 := SomeStruct{}
+	_    , ok = util.Mcache_get(c,"key3",  &rva4 )
+	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rva4,rva4,ok)    } 
+
+
+	rva5 := SomeStruct{}
+	util.Mcache_get(c,"key2",  &rva5 )
+	if debug { log.Printf("  --%#v--- \n\n",rva5)}
 
 
 
 
+	want1 := "just a scalar stupid string"
+	if rva1  !=  want1{
+		t.Errorf("memache get - set - want %s, got ", want1, rva1 )
+	}
+
+
+	want2 := 0
+	if rva2  !=  want2{
+		t.Errorf("memache get - set - want %s, got ", want2, rva2)
+	}
+
+
+	want3 := "{\"s1\":\"this content\",\"s2\":\"is structured\"}"
+	if rva3  !=  want3{
+		t.Errorf("memache get - set - want %s, got ", want3, rva3)
+	}
+
+	want4a := "wonderbar"
+	want4b := "is not wonderbra"
+	
+	if rva4.S1  !=  want4a   || rva4.S2  !=  want4b{
+		t.Errorf("memache get - set - wanted %s %s, got %#v", want4a,want4b, rva4 )
+	}
+
+	want5a := "this content"
+	want5b := "is structured"
+	
+	if rva5.S1  !=  want5a   || rva5.S2  !=  want5b{
+		t.Errorf("memache get - set - wanted %s %s, got %#v", want5a,want5b, rva5 )
+	}
+
+
+}
 

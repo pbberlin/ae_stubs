@@ -8,7 +8,7 @@ import (
 	"appengine/search"
 	
 	"fmt"
-	"github.com/pbberlin/tools/util_err"
+	"github.com/pbberlin/tools/u_err"
 	
 )
 
