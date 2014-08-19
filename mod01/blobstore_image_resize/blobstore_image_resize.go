@@ -31,6 +31,7 @@ type BlobInfo struct{
 	Filename string			`datastore:"filename"`
 	Md5_hash string			`datastore:"md5_hash"`
 	Size int                `datastore:"size"`
+	Upload_id string        `datastore:"upload_id"`
 }
 
 
@@ -134,6 +135,15 @@ func blobThumbServe(w http.ResponseWriter, r *http.Request) {
 func blobList(w http.ResponseWriter, r *http.Request) {
 
 	b1 := new(bytes.Buffer)
+
+	defer func(){
+		w.Header().Set("Content-Type", "text/html")
+		w.Write( b1.Bytes() )		
+	}()
+
+
+
+
 	s1 := ""
 
 	s1 = `
@@ -192,7 +202,7 @@ func blobList(w http.ResponseWriter, r *http.Request) {
 		}
 		// other err
 		if err != nil {
-			util_err.Err_log(err)
+			util_err.Err_http(w,r,err)
 			return 
 		}
 
@@ -261,8 +271,6 @@ func blobList(w http.ResponseWriter, r *http.Request) {
 
 	b1.WriteString("<a accesskey='u' href='/blob/upload' >Upload</a>")
 	
-	w.Header().Set("Content-Type", "text/html")
-	w.Write( b1.Bytes() )
 	
 }
 

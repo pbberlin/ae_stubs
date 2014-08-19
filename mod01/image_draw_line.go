@@ -491,7 +491,7 @@ func imageServe(w http.ResponseWriter, r *http.Request) {
 				//c.Infof("%v", str_b64_img[:100])
 
 				vvbyte,_     := conv.String_to_vvbyte(str_b64_img)
-				key_combi,_  := util.Buf_put(c , util.WrapBlob{"chart1",vvbyte} , "chart1" )
+				key_combi,_  := util.Buf_put(c , util.WrapBlob{Name:"chart1",Vvbyte:vvbyte} , "chart1" )
 
 				dsObj,_  := util.Buf_get(c , key_combi)
 				buff1,_  := conv.Vvbyte_to_string(dsObj.Vvbyte)

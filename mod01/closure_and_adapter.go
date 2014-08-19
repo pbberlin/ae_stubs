@@ -62,14 +62,15 @@ func	adapterAddC(  given func(http.ResponseWriter, *http.Request, string, string
 		m := conditionTotal.FindStringSubmatch( r.URL.Path )
 		if m == nil {
 			err := errors.New("illegal chars in path: " + r.URL.Path )
-			c.Errorf("%v",err)
-			return
+			c.Infof("%v",err)
+			//return
 		}
 
 		s,_  := url.Parse( r.URL.String() )
 		dir  := path.Dir( s.Path)
 		base := path.Base(s.Path)
 		given(w, r, dir , base,c)
+		
 	}
 }
 

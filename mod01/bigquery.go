@@ -9,11 +9,33 @@ import (
 	"appengine"
 	"fmt"
 	"github.com/pbberlin/tools/u_err"
+	"github.com/pbberlin/tools/util"
+	"github.com/pbberlin/tools/parsetools"
+	
+	"bytes"
+	"math/rand"
+	"time"
 	
 )
 
+func printPlaintextTable(w http.ResponseWriter, r *http.Request, vvDest [][]byte  ) {
+	
+	//c := appengine.NewContext(r)
+	b1 := new(bytes.Buffer)
+	defer func(){
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write( b1.Bytes() )		
+	}()
+	
+	for i0 := 0 ; i0 < len(vvDest); i0++ {
+		b1.Write( vvDest[i0] )
+		b1.WriteString( "\n" )
+	}
+	
+}
 
-func bqInit(w http.ResponseWriter, r *http.Request) {
+
+func bqGetData(w http.ResponseWriter, r *http.Request) {
 
 	var q bq.QueryRequest = bq.QueryRequest{}
 	q.Query = `
@@ -32,8 +54,8 @@ func bqInit(w http.ResponseWriter, r *http.Request) {
 	`
 
 
-	context := appengine.NewContext(r)
-	config  := oauth2_google.NewAppEngineConfig(context, []string{
+	c := appengine.NewContext(r)
+	config  := oauth2_google.NewAppEngineConfig(c, []string{
 		"https://www.googleapis.com/auth/bigquery",
 	})
 	// The following client will be authorized by the App Engine
@@ -44,7 +66,8 @@ func bqInit(w http.ResponseWriter, r *http.Request) {
 	
 	//oauthHttpClient := &http.Client{}
 	bigqueryService, err := bq.New( &client )	
-	util_err.Err_log(err)	
+	util_err.Err_http(w,r,err)
+
 	
 	fmt.Fprint(w,"s1<br>\n")
 	
@@ -61,36 +84,138 @@ func bqInit(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w,"s2 " + timeMarker()+" <br>\n")
 	resp, err := jqc.Do()
-	util_err.Err_log(err)
+	util_err.Err_http(w,r,err)
 	
 	
 	
 	rows := resp.Rows
+	var vvDest [][]byte = make( [][]byte, len(rows) )
+	
+	c.Errorf("%#v",rows)
 
-	for i,v := range rows {
-
-		s := fmt.Sprintf("Z%v \t\t",i)
-		fmt.Fprint(w,s)
+	for i0,v0 := range rows {
 		
-		cells := v.F
+		cells := v0.F
+
+		b_row := new(bytes.Buffer)
+		b_row.WriteString( fmt.Sprintf("r%0.2d -- ",i0) )
 		for i1,v1 := range cells{
 			val1 := v1.V
-			s := fmt.Sprintf("c%v  %v  %T \t\t",i1,val1,val1)
-			fmt.Fprint(w,s)
-			//val2 := &v1.V
-			//s  = fmt.Sprintf("\n\t\t%v  %T",val2,val2)
-			//fmt.Fprint(w,s)
+			b_row.WriteString( fmt.Sprintf("c%0.2d: %v  ",i1,val1) )
 		}
-
-		fmt.Fprint(w,"<br>\n")
-
+		vvDest[i0] = []byte( b_row.Bytes() )
 	}
+
+	key_combi,_  := util.Buf_put(c , util.WrapBlob{Name:"bq_res1",Vvbyte:vvDest} , "bq_res1" )
+	dsObj,_  := util.Buf_get(c , key_combi)
+	
+	printPlaintextTable(w, r ,  dsObj.Vvbyte) 
+
+
 	
 	fmt.Fprint(w,"s3 " + timeMarker()+" <br>\n")
 	
 	
 }
 
+func bqMockGetData(w http.ResponseWriter, r *http.Request) {
+
+
+	c := appengine.NewContext(r)
+
+
+	row_max := 100
+	col_max := 3
+
+	var languages[]string  = []string{"C","C++","Rambucto"}
+	
+	var vvDest [][]byte = make( [][]byte, row_max )
+	for i0 := 0 ; i0 < row_max; i0++ {
+
+		vvDest[i0] = make( []byte, col_max)  
+
+		b_row := new(bytes.Buffer)
+		b_row.WriteString( fmt.Sprintf("r%0.2d -- ",i0) )
+		
+		for i1 := 0 ; i1 < col_max; i1++ {
+			if i1 == 0 {
+				val := languages[ i0/10 % 3 ]
+				b_row.WriteString( fmt.Sprintf(" c%0.2d: %-10.8v  ",i1,val) )				
+			} else if i1 == 2 {
+				val := rand.Intn(300)
+				b_row.WriteString( fmt.Sprintf(" c%0.2d: %10v  ",i1,val) )				
+			} else {
+
+				f2 := "2006-01-02 15:04:05"
+				f2  = "2006-01"
+				tn := time.Now()
+				//tn  = tn.Add( - time.Hour * 85 *24 )
+				tn  = tn.Add( - time.Hour * time.Duration(i0) *24 )
+				val := tn.Format( f2 ) 
+				b_row.WriteString( fmt.Sprintf(" c%0.2d: %v  ",i1,val) )				
+			}
+		}
+		vvDest[i0] = []byte( b_row.Bytes() )
+
+	}
+
+	key_combi,_  := util.Buf_put(c , util.WrapBlob{Name:"bq_res_test",Vvbyte:vvDest} , "bq_res_test" )
+	dsObj,_  := util.Buf_get(c , key_combi)
+	
+	printPlaintextTable(w, r ,dsObj.Vvbyte) 
+	
+}
+
+
+func bqProcessData(w http.ResponseWriter, r *http.Request) {
+
+	c := appengine.NewContext(r)
+	b1 := new(bytes.Buffer)
+	defer func(){
+		w.Header().Set("Content-Type", "text/html")
+		w.Write( b1.Bytes() )		
+	}()
+
+
+	var vvSrc [][]byte 
+	
+	vvSrc = bq_res1_data
+	if r.FormValue("mock") != "" {
+		dsObj1,_ := util.Buf_get(c , "util.WrapBlob_bq_res_test")
+		vvSrc = dsObj1.Vvbyte
+	}
+	
+	var vvDest [][]byte = make( [][]byte, len(vvSrc) )
+
+
+	for i0 := 0 ; i0 < len(vvSrc); i0++ {
+
+
+		s_row := string(vvSrc[i0])
+		v_row := parsetools.SplitByWhitespace(s_row)
+		b_row := new(bytes.Buffer)
+		
+
+		b_row.WriteString( fmt.Sprintf("%16.12s   ", v_row[3]) )
+		b_row.WriteString( fmt.Sprintf("%16.12s   ", v_row[5]) )
+		b_row.WriteString( fmt.Sprintf("%16.8s"    , v_row[7]) )
+		
+		vvDest[i0] = []byte( b_row.Bytes() )
+
+	}
+
+
+	key_combi,_  := util.Buf_put(c , util.WrapBlob{Name:"bq_res_test2",Vvbyte:vvDest} , "bq_res_test2" )
+	dsObj2,_  := util.Buf_get(c , key_combi)
+	
+	printPlaintextTable(w, r ,dsObj2.Vvbyte) 
+	
+	
+}
+
+
 func init() {
-	http.HandleFunc("/bq-init", bqInit)	
+	http.HandleFunc("/bq-get-data", bqGetData)	
+	http.HandleFunc("/bq-mock-get-data", bqMockGetData)	
+	http.HandleFunc("/bq-process-data", bqProcessData)	
 }
