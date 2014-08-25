@@ -1,7 +1,6 @@
 package main
 
 import (
-    "fmt"
     "net/http"
 
     "appengine"
@@ -16,12 +15,15 @@ import (
 
 
 func guestEntry(w http.ResponseWriter, r *http.Request) {
-	mc  := map[string]string{
-		"static_title"  :      "guestbook entry title",
-		"static_content_1":     "",
-		"static_content_2":     "",
-	}	
-	myTplExecute(w,mc,c_guestEntryHTML, nil)
+
+
+	tplAdder,tplExec := funcTplBuilder(w,r)
+	tplAdder("static_title","New guest book entry",nil)
+	tplAdder("n_cont_0",c_new_gbe,nil)
+
+	tplExec(w,r)
+
+
 }
 
 
@@ -41,25 +43,32 @@ func guestView(w http.ResponseWriter, r *http.Request) {
 
    c := appengine.NewContext(r)
 	err := sc.Increment(c, "n_visitors_guestbook" )
-	util_err.Err_log(err)
-
+	util_err.Err_http(w,r,err)	
 
 	
-	cntr, err := sc.Count(c, "n_visitors_guestbook" ); util_err.Err_log(err)
-	s_cntr := fmt.Sprint("<br>Counter Guest View is -",cntr,"-<br>\n")
+	cntr, err := sc.Count(c, "n_visitors_guestbook" ); util_err.Err_http(w,r,err)
 
 	
 	gbEntries, report  := guestbookEntries(w,r)
 
+/*
 	mc  := map[string]string{
-		"static_title"  :   "second title",
-		"static_content_1":     "<pre>" + report + "</pre>",
-		"static_content_2":     s_cntr ,
+		"static_title"    :   "List of guest book entries",
+		"n_cont_0"       :   c_view_gbe,
+		"n_cont_1":   "<pre>" + report + "</pre>",
+		"n_cont_2":   s_cntr ,
 	}
-	myTplExecute(w,mc,c_content_2, gbEntries)
+	myTplExecute(w,r,mc,gbEntries)
+*/
+
+
+	tplAdder,tplExec := funcTplBuilder(w,r)
+	tplAdder("static_title","List of guest book entries",nil)
+	tplAdder("n_cont_0",c_view_gbe,gbEntries)
+	tplAdder("n_cont_1","<pre>{{.}}</pre>", report)
+	tplAdder("n_cont_2","Visitors: {{.}}",cntr)
+	tplExec(w,r)
+
+
 
 }
-
-
-
-

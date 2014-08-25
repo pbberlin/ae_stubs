@@ -24,12 +24,13 @@ func fetchURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-	mc  := map[string]string{
-		"static_title"  :      "guestbook entry title",
-		"static_content_1":     "",
-		"static_content_2":     "",
-	}	
-	myTplExecute(w,mc,c_formFetchURL, rURL)
+	
+
+	tplAdder,tplExec := funcTplBuilder(w,r)
+	tplAdder("static_title","Fetch some http data",nil)
+	tplAdder("n_cont_0",c_formFetchURL,nil)
+	tplExec(w,r)
+
 
 
 

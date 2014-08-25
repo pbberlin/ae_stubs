@@ -69,8 +69,41 @@ func	adapterAddC(  given func(http.ResponseWriter, *http.Request, string, string
 		s,_  := url.Parse( r.URL.String() )
 		dir  := path.Dir( s.Path)
 		base := path.Base(s.Path)
+		
+		
 		given(w, r, dir , base,c)
 		
 	}
 }
 
+
+func	adapter(  given func(http.ResponseWriter, *http.Request, map[string]interface{} )	) http.HandlerFunc {
+	
+	
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		c := appengine.NewContext(r)
+
+		conditionTotal := regexp.MustCompile("^/([/a-zA-Z0-9\\.-]*)$") 
+		check_against := r.URL.String() // r.URL.Path
+		matches := conditionTotal.FindStringSubmatch( check_against )
+		if matches == nil {
+			s := "illegal chars in path: " + check_against
+			c.Infof(s)
+			http.Error(w,s, http.StatusInternalServerError)
+			return
+		}
+
+		s,_  := url.Parse( r.URL.String() )
+		dir  := path.Dir( s.Path)
+		base := path.Base(s.Path)
+		
+		map1 := map[string]interface{} {
+			"dir":  dir,
+			"base": base,
+		}
+		
+		given(w, r, map1)
+		
+	}
+}
