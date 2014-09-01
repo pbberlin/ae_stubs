@@ -52,6 +52,9 @@ func writeMethods(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 
+	fmt.Fprintln(w,"written via Fprintln<br>")
+
+
 	// operations with a byte slice	
 	var b2 []byte
 	b2  = make( []byte , 100)
@@ -102,6 +105,12 @@ func writeMethods(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, sio )
 
 
+	b3 := new(bytes.Buffer)
+	defer func(){
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write( b3.Bytes() )		
+	}()
+
 	
 }
 
@@ -111,17 +120,41 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	w.Header().Set("Content-type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 
+
+
 	b1 := new(bytes.Buffer)
 
+
+	wb(b1, "Guest Book", "" )
+	wb(b1, "Eintrag hinzufügen", "/guest-entry" )
+	wb(b1, "Einträge auflisten", "/guest-view" )
+	wb(b1, "Einträge auflisten - paged - serialized cursor", "guest-view-cursor" )
 	
-	b1.WriteString( "<a target='_app' href='/guest-entry'>Eintrag ins Gästebuch</a><br>\n")
-	b1.WriteString( "<a target='_app' href='/guest-view' >Alle Einträge</a><br>\n")
-	b1.WriteString( "<a target='_app' href='/guest-view-cursor' >Alle Einträge, paged</a><br>\n")
 	
 	
-	b1.WriteString( "<br>\n")
-	b1.WriteString( "<a target='_app' href='/email-view' >Letzte Email</a><br>\n")
-	b1.WriteString( "<a target='_app' href='/image-serve?mode=modified' >Chart</a><br>\n")
+
+
+	wb(b1, "Charts", "" )
+	wb(b1, "Chart", "/image-serve" )
+	wb(b1, "Chart Cached", "/image-cache" )
+
+
+
+
+
+	wb(b1, "Big Query", "" )
+	wb(b1, "Get data", "/bq-get-data" )
+	wb(b1, "Process", "/bq-process-data" )
+	wb(b1, "Big Query Mock", "" )
+	wb(b1, "Get data", "/bq-mock-get-data" )
+	wb(b1, "Process", "/bq-process-data?mock=1" )
+
+
+	wb(b1, "Diverse", "" )
+	wb(b1, "Letzte Email", "/email-view" )
+	wb(b1, "Blob List", "/blob/list" )
+	wb(b1, "Template Demo", "/tpl/demo" )
+	wb(b1, "Http fetch", "/fetch-url" )
 
 
 
@@ -150,3 +183,17 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 }
 
 
+func wb( b1 *bytes.Buffer, linktext ,url string){
+
+	if url == "" {
+		b1.WriteString( "<br>\n")	
+	}
+	
+	b1.WriteString( "<span style='display:inline-block; min-width:200px; margin: 6px 0px; margin-right:10px;'>\n")	
+	if url == "" {
+		b1.WriteString( "\t"+ linktext+"\n")	
+	} else {
+		b1.WriteString( "\t<a target='_app' href='"+url+"' >"+linktext+"</a>\n")	
+	}
+	b1.WriteString( "</span>\n")	
+}

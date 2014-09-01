@@ -102,6 +102,7 @@ func	adapter(  given func(http.ResponseWriter, *http.Request, map[string]interfa
 			"dir":  dir,
 			"base": base,
 		}
+
 		
 		given(w, r, map1)
 		

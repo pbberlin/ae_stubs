@@ -25,8 +25,8 @@ const T0 = `
 const T1 = `
 {{define "T1"}}
 	T1 <br>
-		--{{.key1}}--<br>
-		<span style='color:#faa; display:inline-block; margin:8px; margin-left:120px; border: 1px solid #faa'>
+		--{{if .key1}}{{.key1}}{{else}}no dyn data{{end}}--<br>
+		<span style='min-width:200px;color:#faa; display:inline-block; margin:8px; margin-left:120px; border: 1px solid #faa'>
 			{{template "T2" .key2 }}
 		</span>
 	
@@ -75,9 +75,10 @@ func templatesCompileDemo( w http.ResponseWriter , r *http.Request, m map[string
 
 
 	// adding different T2 definitions
-	tc_1, err = tc_1.Parse("{{define `T2`}}T2-A  <br>--{{.}}--  {{end}}")
+	s_if := "{{if .}}{{.}}{{else}}no dyn data{{end}}"
+	tc_1, err = tc_1.Parse("{{define `T2`}}T2-A  <br>--"+s_if+"--  {{end}}")
 	util_err.Err_http(w,r,err)
-	tc_2, err = tc_2.Parse("{{define `T2`}}T2-B  <br>--{{.}}--  {{end}}")
+	tc_2, err = tc_2.Parse("{{define `T2`}}T2-B  <br>--"+s_if+"--  {{end}}")
 	util_err.Err_http(w,r,err)
 
 
@@ -87,7 +88,7 @@ func templatesCompileDemo( w http.ResponseWriter , r *http.Request, m map[string
 	util_err.Err_http(w,r,err)
 
 	// second clone is written with dynamic data on two levels
-	dyndata := map[string]string{"key1":"dyn_val1","key2":"dyn_val2"}
+	dyndata := map[string]string{"key1":"dyn val 1","key2":"dyn val 2"}
 	err = tc_2.ExecuteTemplate(w, "str_T0_outmost", dyndata)
 	util_err.Err_http(w,r,err)
 

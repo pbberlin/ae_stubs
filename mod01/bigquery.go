@@ -123,6 +123,8 @@ func bqMockGetData(w http.ResponseWriter, r *http.Request) {
 
 	c := appengine.NewContext(r)
 
+	rand.Seed(time.Now().UnixNano())
+
 
 	row_max := 100
 	col_max := 3
