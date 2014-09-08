@@ -59,7 +59,7 @@ func Test_put_get(t *testing.T){
 	
 	buff1,_  := conv.Vvbyte_to_string(sw.Vvbyte)
 	if buff1.String() != str_b64{
-		t.Errorf("put - get yields = %s", buff1.String() )
+		c.Errorf("put - get yields = %s", buff1.String() )
 	}
 
 	
