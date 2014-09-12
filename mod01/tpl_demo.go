@@ -4,7 +4,8 @@ import (
 	"html"
 	tt "html/template"	
 	"net/http"	
-	"github.com/pbberlin/tools/u_err"
+	"github.com/pbberlin/tools/util_err"
+	"github.com/pbberlin/tools/adapter"
 	
 )
 
@@ -58,39 +59,39 @@ func templatesCompileDemo( w http.ResponseWriter , r *http.Request, m map[string
 
 	// creating T0 - naming it - adding func map
 	t_base = tt.Must(tt.New("str_T0_outmost").Funcs(funcMap).Parse(T0))
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 
 	// adding T1 definition
    t_base , err = t_base.Parse(T1)  // definitions must appear at top level - but not at the start of
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 	
 
 
 	// create two clones 
 	// both contain T0 and T1
 	tc_1, err := t_base.Clone()
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 	tc_2, err := t_base.Clone()
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 
 
 	// adding different T2 definitions
 	s_if := "{{if .}}{{.}}{{else}}no dyn data{{end}}"
 	tc_1, err = tc_1.Parse("{{define `T2`}}T2-A  <br>--"+s_if+"--  {{end}}")
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 	tc_2, err = tc_2.Parse("{{define `T2`}}T2-B  <br>--"+s_if+"--  {{end}}")
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 
 
 
 	// writing both clones to the response writer
 	err = tc_1.ExecuteTemplate(w, "str_T0_outmost", nil)
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 
 	// second clone is written with dynamic data on two levels
 	dyndata := map[string]string{"key1":"dyn val 1","key2":"dyn val 2"}
 	err = tc_2.ExecuteTemplate(w, "str_T0_outmost", dyndata)
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 
 	// Note: it is important to pass the . 
 	//		 {{template "T1" .}}
@@ -101,14 +102,14 @@ func templatesCompileDemo( w http.ResponseWriter , r *http.Request, m map[string
  
  	// leaving T2 undefined => error 
 	tc_3, err := t_base.Clone()
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 	err = tc_3.ExecuteTemplate(w, "str_T0_outmost", dyndata)
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 
   
 }
 
 
 func init() {
-	http.HandleFunc("/tpl/demo", adapter(templatesCompileDemo) )
+	http.HandleFunc("/tpl/demo", adapter.Adapter(templatesCompileDemo) )
 }

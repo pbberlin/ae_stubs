@@ -1,8 +1,8 @@
-package main
+package big_query
 
 
 
-var bq_res1_data [][]byte = [][]byte{ 
+var bq_statified_res1 [][]byte = [][]byte{ 
 	[]byte("r00 -- c00: C c01: 2011-08 c02: 1.0   "), 
 	[]byte("r01 -- c00: C c01: 2012-03 c02: 193.0 "), 
 	[]byte("r02 -- c00: C c01: 2012-04 c02: 285.0 "), 

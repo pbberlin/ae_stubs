@@ -1,13 +1,13 @@
 package main
 
 import (
-	"time"
 	 "net/http"
 	 "appengine"
 	ds "appengine/datastore"	
 	"fmt"
 	"bytes"
-	"github.com/pbberlin/tools/u_err"
+	"github.com/pbberlin/tools/util_err"
+	"github.com/pbberlin/tools/util"
 	
 )
 
@@ -70,11 +70,11 @@ func saveURL_WithAncestor(w http.ResponseWriter, r *http.Request) {
 	//k := ds.NewKey(c, "childLastURL", "strKeyChildLastURL", 0, ancKey(c) )
 	k := ds.NewKey(c, "childLastURL", "", 0, ancKey(c) )
 
-	lastURL_fictitious_1 := LastURL{"url_with_anc_1 " + timeMarker()}
+	lastURL_fictitious_1 := LastURL{"url_with_anc_1 " + util.TimeMarker()}
 	_, err := ds.Put(c, k, &lastURL_fictitious_1)
 	check(w,err)
 
-	lastURL_fictitious_2 := LastURL{"url_with_anc_2 " + timeMarker()}
+	lastURL_fictitious_2 := LastURL{"url_with_anc_2 " + util.TimeMarker()}
 	_, err = ds.Put(c, k, &lastURL_fictitious_2)
 	check(w,err)
 }
@@ -135,11 +135,3 @@ func viewURLwithAncestors(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func timeMarker() string{
-	f2 := "2006-01-02 15:04:05"
-	tn := time.Now()
-	tn  = tn.Add( - time.Hour * 85 *24 )
-	s2 := tn.Format( f2 ) 
-	return s2
-	
-}

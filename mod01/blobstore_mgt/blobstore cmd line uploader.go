@@ -1,4 +1,4 @@
-package blobstore_image_resize
+package blobstore_mgt
 
 // http://stackoverflow.com/questions/20144066/is-it-possible-to-store-arbitrary-data-in-gae-golang-blobstore
 

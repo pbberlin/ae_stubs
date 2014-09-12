@@ -3,7 +3,7 @@ package main
 import   "testing"
 import   "appengine/aetest"
 import	"github.com/pbberlin/tools/util"
-import   "github.com/pbberlin/tools/u_err"
+import   "github.com/pbberlin/tools/util_err"
 
 
 

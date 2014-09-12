@@ -7,7 +7,7 @@ import (
     
 
 	 sc "github.com/pbberlin/tools/sharded_counter"
-	"github.com/pbberlin/tools/u_err"
+	"github.com/pbberlin/tools/util_err"
 	
 	 
 )
@@ -43,10 +43,10 @@ func guestView(w http.ResponseWriter, r *http.Request) {
 
    c := appengine.NewContext(r)
 	err := sc.Increment(c, "n_visitors_guestbook" )
-	util_err.Err_http(w,r,err)	
+	util_err.Err_http(w,r,err,false)	
 
 	
-	cntr, err := sc.Count(c, "n_visitors_guestbook" ); util_err.Err_http(w,r,err)
+	cntr, err := sc.Count(c, "n_visitors_guestbook" ); util_err.Err_http(w,r,err,false)
 
 	
 	gbEntries, report  := guestbookEntries(w,r)

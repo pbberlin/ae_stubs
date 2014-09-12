@@ -1,4 +1,4 @@
-package blobstore_image_resize
+package blobstore_mgt
 
 import (
 	"html/template"
@@ -13,7 +13,7 @@ import (
 	
 	"github.com/pbberlin/tools/parsetools"
 
-	"github.com/pbberlin/tools/u_err"
+	"github.com/pbberlin/tools/util_err"
 
 	"time"
 	"bytes"
@@ -52,14 +52,14 @@ const rootTemplateHTML = `<html>
 
 
 
-func blobUpload(w http.ResponseWriter, r *http.Request) {
+func uploadNew(w http.ResponseWriter, r *http.Request) {
 
 	parsetools.SplitByWhitespace("a b")
 
 	c := appengine.NewContext(r)
-	uploadURL, err := blobstore.UploadURL(c, "/blob/server-process", nil)
+	uploadURL, err := blobstore.UploadURL(c, "/blob/processing-new-upload", nil)
 	if err != nil {
-		util_err.ServeError(c, w, err)
+		util_err.Err_http(w,r,err,false)
 		return
 	}
 	
@@ -71,12 +71,12 @@ func blobUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func blobServerProcess(w http.ResponseWriter, r *http.Request) {
+func processingUpload(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 	blobs, _, err := blobstore.ParseUpload(r)
 	if err != nil {
 		w.Write(  []byte("<a href='/blob/upload' >Fehler beim Parsing</a>")  )
-		//util_err.ServeError(c, w, err)
+		util_err.Err_http(w,r,err,false)
 		return
 	} 
 	
@@ -106,27 +106,24 @@ func blobServerProcess(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func blobServe(w http.ResponseWriter, r *http.Request) {
+
+func serveWhole(w http.ResponseWriter, r *http.Request) {
 	blobstore.Send(w, appengine.BlobKey(r.FormValue("blobkey")))
 }
 
-func blobThumbServe(w http.ResponseWriter, r *http.Request) {
+func serveThumb(w http.ResponseWriter, r *http.Request) {
 
+	c := appengine.NewContext(r)
+	k := appengine.BlobKey(r.FormValue("blobkey"))
+	
+	var o image.ServingURLOptions = *new(image.ServingURLOptions )
+	o.Size = 200
+	o.Crop = true
+	url,err := image.ServingURL(c,k,&o)
 
-		c := appengine.NewContext(r)
-		k := appengine.BlobKey(r.FormValue("blobkey"))
-		
-		var o image.ServingURLOptions = *new(image.ServingURLOptions )
-		o.Size = 200
-		o.Crop = true
-		url,err := image.ServingURL(c,k,&o)
+	util_err.Err_http(w,r,err,false)
 
-		if err != nil {
-			util_err.ServeError(c, w, err)
-			return
-		}
-		
-		http.Redirect(w, r, url.String(), http.StatusFound)		
+	http.Redirect(w, r, url.String(), http.StatusFound)		
 }
 
 
@@ -202,7 +199,7 @@ func blobList(w http.ResponseWriter, r *http.Request) {
 		}
 		// other err
 		if err != nil {
-			util_err.Err_http(w,r,err)
+			util_err.Err_http(w,r,err,false)
 			return 
 		}
 
@@ -418,10 +415,10 @@ func blobHome(w http.ResponseWriter, r *http.Request) {
 func init() {
 	http.HandleFunc("/blob"  , blobHome)
 	http.HandleFunc("/blob/"  , blobHome)
-	http.HandleFunc("/blob/upload"  , blobUpload)
-	http.HandleFunc("/blob/server-process"  , blobServerProcess)
-	http.HandleFunc("/blob/serve", blobServe)
+	http.HandleFunc("/blob/upload"  , uploadNew)
+	http.HandleFunc("/blob/processing-new-upload"  , processingUpload)
+	http.HandleFunc("/blob/serve", serveWhole)
 	http.HandleFunc("/blob/rename-delete", blobRenameDelete)
-	http.HandleFunc("/blob/thumb-serve", blobThumbServe)
+	http.HandleFunc("/blob/thumb-serve", serveThumb)
 	http.HandleFunc("/blob/list", blobList)
 }

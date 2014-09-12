@@ -6,7 +6,7 @@ import (
 	tt "html/template"    
 	"net/http"    
 	"time"
-	"github.com/pbberlin/tools/u_err"
+	"github.com/pbberlin/tools/util_err"
 
 )
 
@@ -137,7 +137,7 @@ func cloneFromBase(w http.ResponseWriter, r *http.Request) *tt.Template {
 	}
 
 	t_derived, err := t_base.Clone()
-	util_err.Err_http(w,r,err)
+	util_err.Err_http(w,r,err,false)
 
 	return t_derived	
 }
@@ -151,7 +151,7 @@ func templatesExtend(w http.ResponseWriter, r *http.Request,  m map[string]strin
 
 	for k,v := range m{
 		tder, err = tder.Parse( `{{define "` + k  +`"}}`   + v + `{{end}}` )
-		util_err.Err_http(w,r,err)
+		util_err.Err_http(w,r,err,false)
 	}
 
 	return tder
@@ -171,7 +171,7 @@ func funcTplBuilder(w http.ResponseWriter, r *http.Request)( f1  func( string, s
 	f1 = func( tk string, tc string, td interface{} ) {
 
 		_,ok := map_default[tk]
-		util_err.Err_http(w,r,ok,"template key must be one of " , map_default )
+		util_err.Err_http(w,r,ok,false,"template key must be one of " , map_default )
 
 		mtc[tk] = tc
 		mtd[tk] = td
@@ -194,7 +194,7 @@ func funcTplBuilder(w http.ResponseWriter, r *http.Request)( f1  func( string, s
 		tpl_extended  :=  templatesExtend( w,r,map_result )
 	
 		err  :=  tpl_extended.ExecuteTemplate(w, "n_page_scaffold_01", mtd)
-		util_err.Err_http(w,r,err)
+		util_err.Err_http(w,r,err,false)
 
 
 	}

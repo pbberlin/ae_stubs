@@ -6,12 +6,15 @@ import (
 	"appengine"
 
 	 _ "net/http/pprof"	
+	"os"
 
 	"fmt"
 	"bytes"
  	"io/ioutil"	
 	"io"
 	"github.com/pbberlin/tools/util"
+	"github.com/pbberlin/tools/conv"
+	"github.com/pbberlin/tools/adapter"
 	 
 )
 
@@ -19,7 +22,7 @@ func init() {
 	
 	//go main_ftp()
 	
-	http.HandleFunc("/"	 , adapterAddC(homedir))
+	http.HandleFunc("/"	 , adapter.AdapterAddC(homedir))
 	http.HandleFunc("/login", login)
 	http.HandleFunc("/guest-entry" , guestEntry)
 	http.HandleFunc("/guest-save"  , guestSave)
@@ -130,24 +133,27 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	wb(b1, "Einträge auflisten", "/guest-view" )
 	wb(b1, "Einträge auflisten - paged - serialized cursor", "guest-view-cursor" )
 	
-	
-	
+
+	wb(b1, "Big Query", "" )
+	wb(b1, "Get real data", "/big-query/query-into-datastore" )
+	wb(b1, "Get mocked data", "/big-query/mock-data-into-datastore" )
+	wb(b1, " ", "" )
+	wb(b1, "Process Step 1 (optionally ?mock=1)",  "/big-query/regroup-data-01" )
+	wb(b1, "Process Step 2",  "/big-query/regroup-data-02?f=table" )
 
 
 	wb(b1, "Charts", "" )
-	wb(b1, "Chart", "/image-serve" )
-	wb(b1, "Chart Cached", "/image-cache" )
+	wb(b1, "Drawing a chart", "/image/draw-lines-example" )
+	wb(b1, " ", "" )
+	wb(b1, "Get image from Datastore", "/image/img-from-datastore?p=chart1" )
+	wb(b1, "Get base64 from Datastore", "/image/base64-from-datastore?p=chart1" )
+	wb(b1, "Get base64 from Variable", "/image/base64-from-var?p=1" )
+	wb(b1, "Get base64 from File", "/image/base64-from-file?p=static/pberg1.png" )
 
 
 
 
 
-	wb(b1, "Big Query", "" )
-	wb(b1, "Get data", "/bq-get-data" )
-	wb(b1, "Process", "/bq-process-data" )
-	wb(b1, "Big Query Mock", "" )
-	wb(b1, "Get data", "/bq-mock-get-data" )
-	wb(b1, "Process", "/bq-process-data?mock=1" )
 
 
 	wb(b1, "Diverse", "" )
@@ -174,8 +180,21 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	b1.WriteString( "Dir: "+dir+" -  Base: "+base+" <br>\n")
 	
 	b1.WriteString( "<br>\n")
-	s := fmt.Sprintf( "IntegerSequenes a, b: %v %v %v<br>\n",myIntSeq01(), myIntSeq01(), myIntSeq02())
+	s := fmt.Sprintf( "IntegerSequenes a, b: %v %v %v<br>\n",adapter.MyIntSeq01(), adapter.MyIntSeq01(), adapter.MyIntSeq02())
 	b1.WriteString( s)
+
+	b1.WriteString( "<br>\n")
+	b1.WriteString( fmt.Sprintf( "Temp dir is %s<br>\n",os.TempDir() ))
+
+
+	b1.WriteString( "<br>\n")
+	b2 := new(bytes.Buffer)
+	b2.WriteString("data:image/png;base64,...")
+	b1.WriteString( fmt.Sprintf( "Mime from %q is %q<br>\n",b2.String(),conv.MimeFromBase64(b2) ))
+	
+/*
+*/
+
 	
 	w.Header().Set("Content-Type", "text/html")	
 	w.Write( b1.Bytes() ) 
