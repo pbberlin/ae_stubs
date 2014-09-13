@@ -14,7 +14,6 @@ import (
 	"github.com/pbberlin/tools/util_err"
 	"github.com/pbberlin/tools/util"
 	"github.com/pbberlin/tools/charting"
-	"github.com/pbberlin/tools/conv"
 
 
 )
@@ -46,9 +45,9 @@ func showAsChart(w http.ResponseWriter, r *http.Request, cd cdata){
 	defer f.Close()
 	
 
-	imgRaw, whichformat, err := image.Decode(f)
+	imgRaw, whichFormat, err := image.Decode(f)
 	util_err.Err_http(w,r,err,false,"only jpeg and png are 'activated' ")
-	c.Infof( "serving img format %v %T\n" , whichformat , imgRaw)
+	c.Infof( "serving img format %v %T\n" , whichFormat , imgRaw)
 	
 	var img *image.RGBA
 	img,ok := imgRaw.(*image.RGBA)
@@ -70,20 +69,24 @@ func showAsChart(w http.ResponseWriter, r *http.Request, cd cdata){
 		
 		drw := charting.FuncDrawLiner(lineCol,img)
 		xb,yb := 40,440
-		P0 := image.Point{xb,yb}
-		drw( P0, lineCol,img ) 
+		//P0 := image.Point{xb,yb}
+		//drw( P0, lineCol,img ) 
 
 		x,y := xb,yb
 
+		maxPeriods := 0
 		for _,period := range cd.VPeriods {
 
-			x += 24
 			tmp := cd.M[period][lang]/scale_max * 400
 			y = yb - int( tmp )
 
 
 			drw( image.Point{x,y}, lineCol,img) 			
 			//fmt.Fprintf(w,"%v-%v: %v => %v => %v\n",period, lang,count,int(tmp),y)
+			x += 40
+
+			maxPeriods++
+			if maxPeriods>24 {break}
 		}
 	}
 
@@ -91,6 +94,6 @@ func showAsChart(w http.ResponseWriter, r *http.Request, cd cdata){
 	png.Encode(w, img)
 
 
-	conv.ImageSave( c, img, "chart2" )	
+	charting.SaveImageToDatastore( w,r, img, "chart2" )	
 
 }

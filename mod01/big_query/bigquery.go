@@ -57,6 +57,9 @@ func printPlaintextTable(w http.ResponseWriter, r *http.Request, vvDest [][]byte
 
 func queryIntoDatastore(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 
+	limitLower := util.MonthsBack(24)
+	limitUpper := util.MonthsBack( 0)
+
 	var q bq.QueryRequest = bq.QueryRequest{}
 	q.Query = `
 		SELECT
@@ -65,7 +68,8 @@ func queryIntoDatastore(w http.ResponseWriter, r *http.Request, m map[string]int
 		, CEIL( count(*)/1000) Tausend
 		FROM githubarchive:github.timeline
 		where 1=1
-			AND  LEFT(repository_pushed_at,7) >= '2011-01'
+			AND  LEFT(repository_pushed_at,7) >= '`+limitLower+`'
+			AND  LEFT(repository_pushed_at,7) <= '`+limitUpper+`'
 			AND  repository_language in ('Go','go','Golang','golang','C','Java','PHP','JavaScript','C++','Python','Ruby')
 			AND  type="PushEvent"
 		group by monthx, repository_language
@@ -225,7 +229,7 @@ func regroupFromDatastore01(w http.ResponseWriter, r *http.Request, m map[string
 		b_row := new(bytes.Buffer)
 
 
-		b_row.WriteString( fmt.Sprintf("%16.12s   ", v_row[3]) )
+		b_row.WriteString( fmt.Sprintf("%16.12s   ", v_row[3]) )  // leading spaces
 		b_row.WriteString( fmt.Sprintf("%16.12s   ", v_row[5]) )
 		b_row.WriteString( fmt.Sprintf("%16.8s"    , v_row[7]) )
 

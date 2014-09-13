@@ -15,6 +15,7 @@ import (
 	"github.com/pbberlin/tools/util"
 	"github.com/pbberlin/tools/conv"
 	"github.com/pbberlin/tools/adapter"
+	"github.com/pbberlin/tools/charting"
 	 
 )
 
@@ -191,7 +192,29 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	b2 := new(bytes.Buffer)
 	b2.WriteString("data:image/png;base64,...")
 	b1.WriteString( fmt.Sprintf( "Mime from %q is %q<br>\n",b2.String(),conv.MimeFromBase64(b2) ))
+
+
+	b1.WriteString( "<br>\n")
+	b1.WriteString( fmt.Sprintf( "Last Month %q - 24 Months ago is %q<br>\n",util.MonthsBack(0),
+	 util.MonthsBack(24) ))
+
+
+	b1.WriteString( "<br>\n")
+	sEnc := "Theo - wir fahrn nach Łódź. c a ff ee - trink nicht so viel Kaffee. "	
+	buf1 ,msg1 := charting.StringToVByte(sEnc)
+	//b1.WriteString( fmt.Sprint("string to byte in chunks says:",buf1.String(),"<br>" ) )
+	b1.WriteString( fmt.Sprint(msg1) )
+
+	b1.WriteString( fmt.Sprint(  "restore 1 s:= string([]bytes): ",  string(buf1.Bytes()),"<br>" ) )
+
+	var bEnc []byte = []byte(sEnc)
+	b1.WriteString( fmt.Sprint(  "restore 2 - from []byte(sEnc): ",  string(bEnc),"<br>" ) )
 	
+
+
+	
+
+
 /*
 */
 

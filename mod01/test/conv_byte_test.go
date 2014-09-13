@@ -67,8 +67,8 @@ func Test_put_get(t *testing.T){
 
 func Test_string_to_img_and_back(t *testing.T){
 
-	img,whichformat := conv.Base64_str_to_img( str_b64 )	
-	log.Printf( "Retrieved img from base64 string: format %v - type %T\n" , whichformat, img )
+	img,whichFormat := conv.Base64_str_to_img( str_b64 )	
+	log.Printf( "Retrieved img from base64 string: format %v - type %T\n" , whichFormat, img )
 
 	imgRGBA,ok := img.(*image.RGBA)
 	if !ok {
