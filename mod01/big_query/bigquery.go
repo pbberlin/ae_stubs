@@ -21,17 +21,6 @@ import (
 
 )
 
-// chart data
-type cdata struct {
-	M map[string]map[string]float64 	
-	VPeriods []string
-	VLangs   []string
-	F_max float64
-}
-
-
-
-
 
 
 // print it to http writer
@@ -212,7 +201,7 @@ func regroupFromDatastore01(w http.ResponseWriter, r *http.Request, m map[string
 	}
 
 
-	if r.FormValue("mock") != "" {
+	if r.FormValue("mock") == "1" {
 		dsObj1,_ := util.Buf_get(c , "util.WrapBlob__bq_res_test")
 		vvSrc = dsObj1.Vvbyte
 	}
@@ -298,7 +287,7 @@ func regroupFromDatastore02(w http.ResponseWriter, r *http.Request, m map[string
 	sortedPeriods := util.KeysToSortedArray(distinctPeriods)
 	sortedLangs := util.KeysToSortedArray(distinctLangs)
 
-	cd := cdata{}
+	cd := CData{}
 	_ = cd
 	
 	cd.M = d
@@ -307,38 +296,20 @@ func regroupFromDatastore02(w http.ResponseWriter, r *http.Request, m map[string
 	cd.F_max    = f_max
 	
 
+	SaveChartDataToDatastore(w,r,cd,"chart_data_01")
 
+	/*
 	if r.FormValue("f") == "table" {
 		showAsTable(w,r,cd)
 	} else {
 		showAsChart(w,r,cd)		
 	}
-
+	*/
 
 
 
 }
 
-func showAsTable(w http.ResponseWriter, r *http.Request, cd cdata){
-
-	span := util.GetSpanner()
-	// Header row
-	fmt.Fprintf(w,span(" ",164)	)		
-	for _,lg := range cd.VLangs {
-		fmt.Fprintf(w,span(lg,88)	)		
-	}
-	fmt.Fprintf(w,"<br>")		
-	
-	for _,period := range cd.VPeriods {
-		fmt.Fprintf(w,span(period,164)	)		
-		for _,lg := range cd.VLangs {
-			fmt.Fprintf(w,span( cd.M[period][lg]  ,88)	)		
-		}
-		fmt.Fprintf(w,"<br>")		
-	}
-
-	
-}
 
 func init() {
 

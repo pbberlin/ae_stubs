@@ -8,12 +8,14 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"fmt"
 
 	"net/http"
 	"appengine"
 	"github.com/pbberlin/tools/util_err"
 	"github.com/pbberlin/tools/util"
 	"github.com/pbberlin/tools/charting"
+	"github.com/pbberlin/tools/adapter"
 
 
 )
@@ -21,11 +23,40 @@ import (
 
 
 
+func showAsTable(w http.ResponseWriter, r *http.Request , m map[string]interface{} ){
+
+	cd1 := GetChartDataFromDatastore(w,r,"chart_data_01")	
+	cd := *cd1
+
+	span := util.GetSpanner()
+	// Header row
+	fmt.Fprintf(w,span(" ",164)	)		
+	for _,lg := range cd.VLangs {
+		fmt.Fprintf(w,span(lg,88)	)		
+	}
+	fmt.Fprintf(w,"<br>")		
+	
+	for _,period := range cd.VPeriods {
+		fmt.Fprintf(w,span(period,164)	)		
+		for _,lg := range cd.VLangs {
+			fmt.Fprintf(w,span( cd.M[period][lg]  ,88)	)		
+		}
+		fmt.Fprintf(w,"<br>")		
+	}
+
+	
+}
 
 
-func showAsChart(w http.ResponseWriter, r *http.Request, cd cdata){
+func showAsChart(w http.ResponseWriter, r *http.Request, m map[string]interface{} ){
+
+	cd1 := GetChartDataFromDatastore(w,r,"chart_data_01")	
+	cd := *cd1
+
 
 	c := appengine.NewContext(r)
+
+	
 	
 	optScale,_,_:= charting.BestScale(cd.F_max, charting.Scale_y_vm)
 	scale_max := 0.0
@@ -96,4 +127,10 @@ func showAsChart(w http.ResponseWriter, r *http.Request, cd cdata){
 
 	charting.SaveImageToDatastore( w,r, img, "chart2" )	
 
+}
+
+func init() {
+
+	http.HandleFunc("/big-query/show-chart", adapter.Adapter(showAsChart) )
+	http.HandleFunc("/big-query/show-table", adapter.Adapter(showAsTable) )
 }
