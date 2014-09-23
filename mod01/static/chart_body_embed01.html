@@ -1,0 +1,5 @@
+{{ $mapOrArray := . }} 
+{{range $index, $element := $mapOrArray }}
+   	<span style='font-weight:bold;color:#{{ $element }}' >{{ $index }}</span> <br>
+{{end}}	
+

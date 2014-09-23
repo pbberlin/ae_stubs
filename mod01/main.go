@@ -149,7 +149,8 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	wb(b1, "Diverse", "" )
 	wb(b1, "Letzte Email", "/email-view" )
 	wb(b1, "Blob List", "/blob/list" )
-	wb(b1, "Template Demo", "/tpl/demo" )
+	wb(b1, "Template Demo 1", "/tpl/demo1" )
+	wb(b1, "Template Demo 2", "/tpl/demo2" )
 	wb(b1, "Http fetch", "/fetch-url" )
 
 

@@ -10,8 +10,20 @@ import (
 	"io/ioutil"	
 	"html"
 	"github.com/pbberlin/tools/util"
+	"tpl_html"	 
 	
 )
+
+
+const c_formFetchURL = `
+
+    <form action="/fetch-url" method="post">
+      <div><input name="url"    size="160"  value="{{.}}"></div>
+      <div><input type="submit" value="Fetch" accesskey='f'></div>
+    </form>
+
+`
+
 
 func fetchURL(w http.ResponseWriter, r *http.Request) {
 
@@ -26,8 +38,8 @@ func fetchURL(w http.ResponseWriter, r *http.Request) {
 
 	
 
-	tplAdder,tplExec := funcTplBuilder(w,r)
-	tplAdder("static_title","Fetch some http data",nil)
+	tplAdder,tplExec := 	tpl_html.FuncTplBuilder(w,r)
+	tplAdder("n_html_title","Fetch some http data",nil)
 	tplAdder("n_cont_0",c_formFetchURL,nil)
 	tplExec(w,r)
 

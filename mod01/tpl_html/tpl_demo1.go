@@ -1,4 +1,4 @@
-package main
+package tpl_html
 
 import (
 	"html"
@@ -14,7 +14,7 @@ import (
 
 
 
-
+// preconceive all embedded templates:
 const T0 = `
 	T0	<br>
 		<span style='color:#aaf; line-height:200%;display:inline-block; margin:8px; margin-left:120px; border: 1px solid #aaf'>
@@ -40,7 +40,7 @@ const iterOver = `{{ $mapOrArray := . }}
    <li><strong>$index</strong>: $element </li>
 {{end}}`
 
-const treatFirstIterDifferent = `{{if $index}},{{end}}`
+const treatFirstIterDifferent = `{{if $index}},x{{end}}`
 
 
 func templatesCompileDemo( w http.ResponseWriter , r *http.Request, m map[string]interface{}) {
@@ -61,14 +61,14 @@ func templatesCompileDemo( w http.ResponseWriter , r *http.Request, m map[string
 	t_base = tt.Must(tt.New("str_T0_outmost").Funcs(funcMap).Parse(T0))
 	util_err.Err_http(w,r,err,false)
 
-	// adding T1 definition
-   t_base , err = t_base.Parse(T1)  // definitions must appear at top level - but not at the start of
+
+	// adding the definition of T1 - introducing reference to T2 - undefined yet
+   t_base , err = t_base.Parse(T1)  // definitions must appear at top level - but not at the start
 	util_err.Err_http(w,r,err,false)
-	
 
 
 	// create two clones 
-	// both contain T0 and T1
+	// now both containing T0 and T1
 	tc_1, err := t_base.Clone()
 	util_err.Err_http(w,r,err,false)
 	tc_2, err := t_base.Clone()
@@ -83,17 +83,18 @@ func templatesCompileDemo( w http.ResponseWriter , r *http.Request, m map[string
 	util_err.Err_http(w,r,err,false)
 
 
-
 	// writing both clones to the response writer
 	err = tc_1.ExecuteTemplate(w, "str_T0_outmost", nil)
 	util_err.Err_http(w,r,err,false)
+
 
 	// second clone is written with dynamic data on two levels
 	dyndata := map[string]string{"key1":"dyn val 1","key2":"dyn val 2"}
 	err = tc_2.ExecuteTemplate(w, "str_T0_outmost", dyndata)
 	util_err.Err_http(w,r,err,false)
 
-	// Note: it is important to pass the . 
+
+	// Note: it is important to pass the DOT 
 	//		 {{template "T1" .}}
 	//		 {{template "T2" .key2 }}
 	//						 ^
@@ -111,5 +112,5 @@ func templatesCompileDemo( w http.ResponseWriter , r *http.Request, m map[string
 
 
 func init() {
-	http.HandleFunc("/tpl/demo", adapter.Adapter(templatesCompileDemo) )
+	http.HandleFunc("/tpl/demo1", adapter.Adapter(templatesCompileDemo) )
 }

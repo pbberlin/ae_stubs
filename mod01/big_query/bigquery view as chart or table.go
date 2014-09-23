@@ -129,8 +129,13 @@ func showAsChart(w http.ResponseWriter, r *http.Request, m map[string]interface{
 
 }
 
-func init() {
 
+
+
+
+
+
+func init() {
 	http.HandleFunc("/big-query/show-chart", adapter.Adapter(showAsChart) )
 	http.HandleFunc("/big-query/show-table", adapter.Adapter(showAsTable) )
 }
