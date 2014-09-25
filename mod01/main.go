@@ -4,11 +4,13 @@ import (
 	"net/http"
 
 	"appengine"
-
+	
+	
 	 _ "net/http/pprof"	
 	"os"
 
 	"fmt"
+	"log"
 	"bytes"
  	"io/ioutil"	
 	"io"
@@ -16,19 +18,22 @@ import (
 	"github.com/pbberlin/tools/conv"
 	"github.com/pbberlin/tools/adapter"
 
-	_ "big_query"	 
+	// not used - but init() functions wanted for 
+	// httpHandler registrations
+	_ "github.com/pbberlin/tools/big_query"
+	_ "github.com/pbberlin/tools/blobstore_mgt"
+	_ "github.com/pbberlin/tools/instance_mgt"
+	_ "github.com/pbberlin/tools/guestbook"
 )
 
+
 func init() {
+
 	
 	//go main_ftp()
 	
 	http.HandleFunc("/"	 , adapter.AdapterAddC(homedir))
 	http.HandleFunc("/login", login)
-	http.HandleFunc("/guest-entry" , guestEntry)
-	http.HandleFunc("/guest-save"  , guestSave)
-	http.HandleFunc("/guest-view"  , guestView)
-	http.HandleFunc("/guest-view-cursor" , guestViewCursor)
 	
 	http.Handle	("/json" , Servable_As_HTTP_JSON{Body:"myTitle",Title:"myBody"} )
 	
@@ -43,7 +48,9 @@ func init() {
 	http.HandleFunc("/email-view" , emailView)
 
 	http.HandleFunc("/write-methods" , writeMethods)
-	
+
+
+	log.Println("mod01 (default) init complete")
 
 }
 
@@ -135,6 +142,10 @@ func writeMethods(w http.ResponseWriter, r *http.Request) {
 }
 
 
+
+
+
+
 func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appengine.Context) {
 	
 	w.Header().Set("Content-type", "text/html; charset=utf-8")
@@ -152,10 +163,13 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	wb(b1, "Template Demo 1", "/tpl/demo1" )
 	wb(b1, "Template Demo 2", "/tpl/demo2" )
 	wb(b1, "Http fetch", "/fetch-url" )
+	wb(b1, "Instance Info", "/instance-info" )
+	wb(b1, "Gob encode decode", "/big-query/test-gob-codec" )
 
 
 
 	wb(b1, "Guest Book", "" )
+	wb(b1, "Login", "/login" )
 	wb(b1, "Eintrag hinzufügen", "/guest-entry" )
 	wb(b1, "Einträge auflisten", "/guest-view" )
 	wb(b1, "Einträge auflisten - paged - serialized cursor", "guest-view-cursor" )
@@ -172,17 +186,21 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	wb(b1, "Process Data 2",  "/big-query/regroup-data-02?f=table" )
 	wb(b1, "Show as Table",  "/big-query/show-table" )
 	wb(b1, "Show as Chart",  "/big-query/show-chart" )
+	wb(b1, "As HTML",  "/big-query/html" )
 
 
 
 	wb(b1, "Request Images ", "" )
-	wb(b1, "Get prepared Img from Datastore", "/image/img-from-datastore?p=chart1" )
-	wb(b1, "Get base64 from Datastore", "/image/base64-from-datastore?p=chart1" )
-	wb(b1, "Get base64 from Variable", "/image/base64-from-var?p=1" )
-	wb(b1, "Get base64 from File", "/image/base64-from-file?p=static/pberg1.png" )
+	wb(b1, "WrapBlob from Datastore", "/image/img-from-datastore?p=chart1" )
+	wb(b1, "base64 from Datastore", "/image/base64-from-datastore?p=chart1" )
+	wb(b1, "base64 from Variable", "/image/base64-from-var?p=1" )
+	wb(b1, "base64 from File", "/image/base64-from-file?p=static/pberg1.png" )
 
 
-
+	wb(b1, "Namespaces + Task Queues", "" )
+	wb(b1, "Increment", "/namespaced-counters/increment" )
+	wb(b1, "Read", "/namespaced-counters/read" )
+	wb(b1, "Push to task-queue", "/namespaced-counters/queue-push" )
 
 
 
@@ -201,7 +219,7 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 
 
 	b1.WriteString( "<br>\n")
-	b1.WriteString( "Dir: "+dir+" -  Base: "+base+" <br>\n")
+	b1.WriteString( "Dir: --"+dir+"-- &nbsp; &nbsp; &nbsp; &nbsp;   Base: --"+base+"-- <br>\n")
 	
 	b1.WriteString( "<br>\n")
 	s := fmt.Sprintf( "IntegerSequenes a, b: %v %v %v<br>\n",adapter.MyIntSeq01(), adapter.MyIntSeq01(), adapter.MyIntSeq02())
@@ -226,11 +244,8 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	sEnc := "Theo - wir fahrn nach Łódź."	
 	b1.WriteString( fmt.Sprint(  "restore string string(  []byte(sEnc) ): ",  string(  []byte(sEnc) ),"<br>" ) )
 
-	//big_query.TestDecodeEncode(w,r)
 	
 	w.Header().Set("Content-Type", "text/html")	
 	w.Write( b1.Bytes() ) 
 	
 }
-
-

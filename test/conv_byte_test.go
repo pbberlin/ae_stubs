@@ -46,18 +46,18 @@ func Test_put_get(t *testing.T){
 	}
 
 
-	vvbyte,_     := conv.String_to_vvbyte(str_b64)
-	key_combi, _ := util.Buf_put(c , util.WrapBlob{"test",vvbyte} , "test" )
+	VVByte,_     := conv.String_to_VVByte(str_b64)
+	key_combi, _ := util.Buf_put(c , util.WrapBlob{"test",VVByte} , "test" )
 
 	sw, _    := util.Buf_get(c , key_combi)
 	
 	if debug {
-		for i,v := range 	sw.Vvbyte {
+		for i,v := range 	sw.VVByte {
 			c.Errorf("%v  %s\n",i,v)	
 		}
 	}
 	
-	buff1,_  := conv.Vvbyte_to_string(sw.Vvbyte)
+	buff1,_  := conv.VVByte_to_string(sw.VVByte)
 	if buff1.String() != str_b64{
 		c.Errorf("put - get yields = %s", buff1.String() )
 	}
@@ -90,16 +90,16 @@ func Test_string_to_img_and_back(t *testing.T){
 
 // long string to slice of slice of byte (vector of vector of byte)
 //   two inverse functions
-func Test_string_to_vvbyte_and_back(t *testing.T) {
+func Test_string_to_VVByte_and_back(t *testing.T) {
 
 
-	vvbyte,_ := conv.String_to_vvbyte(str_b64)
-	for i,v := range vvbyte {
+	VVByte,_ := conv.String_to_VVByte(str_b64)
+	for i,v := range VVByte {
 		if debug { log.Printf("%v -  %s \n",i,v) }
 	}	
 	
 
-	buff1,_ := conv.Vvbyte_to_string(vvbyte)
+	buff1,_ := conv.VVByte_to_string(VVByte)
 	if buff1.String() != str_b64{
 		t.Errorf("encode - decode yields = %s", buff1.String() )
 	}

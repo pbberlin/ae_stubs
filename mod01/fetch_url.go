@@ -10,7 +10,7 @@ import (
 	"io/ioutil"	
 	"html"
 	"github.com/pbberlin/tools/util"
-	"tpl_html"	 
+	"github.com/pbberlin/tools/tpl_html"	 
 	
 )
 

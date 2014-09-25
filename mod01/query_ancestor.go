@@ -25,33 +25,30 @@ func ancKey( c appengine.Context ) *ds.Key {
 	return ds.NewKey(c, "kindLastURLParent", "LastURLParent1", 0, nil)	
 }
 
-
+// saving some data by kind and key
+//   without ancestor key
 func saveURL_NoAnc(w http.ResponseWriter, r *http.Request) {
 
 	c := appengine.NewContext(r)
 
 
 	k := ds.NewKey(c, "childLastURL", "strKeyChildLastURL", 0, nil )
-	
-
 	e := new(LastURL)
-   
-   
    err := ds.Get(c, k, e)
 	if err == ds.ErrNoSuchEntity {
 		util_err.Err_log(err)
-	} else if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
+	} else {
+		util_err.Err_http(w,r,err,false)
 	}
+
 
 	old := e.Value
 	e.Value = r.URL.Path +"--"+ r.URL.RawQuery
 
-	if _, err := ds.Put(c, k, e); err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+
+	_, err = ds.Put(c, k, e)
+	util_err.Err_http(w,r,err,false)
+
 
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.Write( []byte("old="+old    +"\n" ) )
@@ -72,11 +69,12 @@ func saveURL_WithAncestor(w http.ResponseWriter, r *http.Request) {
 
 	lastURL_fictitious_1 := LastURL{"url_with_anc_1 " + util.TimeMarker()}
 	_, err := ds.Put(c, k, &lastURL_fictitious_1)
-	check(w,err)
+	util_err.Err_http(w,r,err,false)
+
 
 	lastURL_fictitious_2 := LastURL{"url_with_anc_2 " + util.TimeMarker()}
 	_, err = ds.Put(c, k, &lastURL_fictitious_2)
-	check(w,err)
+	util_err.Err_http(w,r,err,false)
 }
 
 	
@@ -124,7 +122,8 @@ func viewURLwithAncestors(w http.ResponseWriter, r *http.Request) {
 	q := ds.NewQuery("childLastURL").Ancestor(ancKey(c))
 	var vURLs []LastURL
 	keys, err := q.GetAll(c, &vURLs)
-	check(w,err)
+	util_err.Err_http(w,r,err,false)
+
 	
 	for i,v := range vURLs{
 		s := fmt.Sprint( i, keys[i], v,"\n")
