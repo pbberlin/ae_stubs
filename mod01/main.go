@@ -3,8 +3,6 @@ package main
 import (
 	"net/http"
 
-	"appengine"
-	
 	
 	 _ "net/http/pprof"	
 	"os"
@@ -33,7 +31,7 @@ func init() {
 	
 	//go main_ftp()
 	
-	http.HandleFunc("/"	 , util_err.AdapterAddC(homedir))
+	http.HandleFunc("/"	 , util_err.Adapter(homedir))
 	http.HandleFunc("/login", login)
 	
 	http.Handle	("/json" , Servable_As_HTTP_JSON{Body:"myTitle",Title:"myBody"} )
@@ -143,7 +141,7 @@ func writeMethods(w http.ResponseWriter, r *http.Request) {
 
 
 
-func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appengine.Context) {
+func homedir(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 	
 	w.Header().Set("Content-type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -217,6 +215,8 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 
 
 
+	dir  := m["dir"].(string)
+	base := m["base"].(string)
 	b1.WriteString( "<br>\n")
 	b1.WriteString( "Dir: --"+dir+"-- &nbsp; &nbsp; &nbsp; &nbsp;   Base: --"+base+"-- <br>\n")
 	

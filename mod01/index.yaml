@@ -16,6 +16,12 @@ indexes:
   - name: Value
     direction: desc
 
+- kind: classUrl
+  ancestor: yes
+  properties:
+  - name: Value
+    direction: desc
+
 - kind: entry
   ancestor: yes
   properties:
