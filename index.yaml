@@ -6,6 +6,15 @@ indexes:
   - name: Date
     direction: desc
 
+- kind: childLastURL
+  ancestor: yes
+  properties:
+  - name: Value
+    direction: desc
+
+
+
+
 
 #- kind: shard
 #  ancestor: no

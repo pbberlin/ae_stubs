@@ -16,7 +16,7 @@ import (
 	"io"
 	"github.com/pbberlin/tools/util"
 	"github.com/pbberlin/tools/conv"
-	"github.com/pbberlin/tools/adapter"
+	"github.com/pbberlin/tools/util_err"
 
 	// not used - but init() functions wanted for 
 	// httpHandler registrations
@@ -24,6 +24,7 @@ import (
 	_ "github.com/pbberlin/tools/blobstore_mgt"
 	_ "github.com/pbberlin/tools/instance_mgt"
 	_ "github.com/pbberlin/tools/guestbook"
+	_ "github.com/pbberlin/tools/last_url"
 )
 
 
@@ -32,15 +33,11 @@ func init() {
 	
 	//go main_ftp()
 	
-	http.HandleFunc("/"	 , adapter.AdapterAddC(homedir))
+	http.HandleFunc("/"	 , util_err.AdapterAddC(homedir))
 	http.HandleFunc("/login", login)
 	
 	http.Handle	("/json" , Servable_As_HTTP_JSON{Body:"myTitle",Title:"myBody"} )
 	
-	http.HandleFunc("/save-url" , saveURL_NoAnc)
-	http.HandleFunc("/save-url-anc" , saveURL_WithAncestor)
-	http.HandleFunc("/view-url" , viewURLAll)
-	http.HandleFunc("/view-url-anc" , viewURLwithAncestors)
 	
 	
 	  http.HandleFunc("/_ah/mail/"  , emailReceive1)
@@ -202,6 +199,8 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	wb(b1, "Read", "/namespaced-counters/read" )
 	wb(b1, "Push to task-queue", "/namespaced-counters/queue-push" )
 
+	wb(b1, "URLs with/without ancestors", "" )
+	wb(b1, "Backend", "/save-url/backend" )
 
 
 
@@ -222,7 +221,7 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 	b1.WriteString( "Dir: --"+dir+"-- &nbsp; &nbsp; &nbsp; &nbsp;   Base: --"+base+"-- <br>\n")
 	
 	b1.WriteString( "<br>\n")
-	s := fmt.Sprintf( "IntegerSequenes a, b: %v %v %v<br>\n",adapter.MyIntSeq01(), adapter.MyIntSeq01(), adapter.MyIntSeq02())
+	s := fmt.Sprintf( "IntegerSequenes a, b: %v %v %v<br>\n",util_err.MyIntSeq01(), util_err.MyIntSeq01(), util_err.MyIntSeq02())
 	b1.WriteString( s)
 
 	b1.WriteString( "<br>\n")
@@ -236,6 +235,8 @@ func homedir(w http.ResponseWriter, r *http.Request, dir , base string, c appeng
 
 
 	b1.WriteString( "<br>\n")
+
+	io.WriteString(b1, "Date: " + util.TimeMarker() + "  - " )
 	b1.WriteString( fmt.Sprintf( "Last Month %q - 24 Months ago is %q<br>\n",util.MonthsBack(0),
 	 util.MonthsBack(24) ))
 

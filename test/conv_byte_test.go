@@ -47,9 +47,9 @@ func Test_put_get(t *testing.T){
 
 
 	VVByte,_     := conv.String_to_VVByte(str_b64)
-	key_combi, _ := util.Buf_put(c , util.WrapBlob{"test",VVByte} , "test" )
+	key_combi, _ := dsu.Buf_put(c , dsu.WrapBlob{"test",VVByte} , "test" )
 
-	sw, _    := util.Buf_get(c , key_combi)
+	sw, _    := dsu.Buf_get(c , key_combi)
 	
 	if debug {
 		for i,v := range 	sw.VVByte {
@@ -164,49 +164,49 @@ func Test_memcache_get_set(t *testing.T) {
 	}
 
 
-	rvb1  , ok := util.Mcache_get(c,"key1",  &SomeStruct{} )
+	rvb1  , ok := dsu.Mcache_get(c,"key1",  &SomeStruct{} )
 	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rvb1,rvb1,ok)    }
 
 
-	rvb2  , ok := util.Mcache_get(c,"key2",  "string" )
+	rvb2  , ok := dsu.Mcache_get(c,"key2",  "string" )
 	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rvb2,rvb2,ok)    } 
 
-	rvb3  , ok := util.Mcache_get(c,"key3",  22323 )
+	rvb3  , ok := dsu.Mcache_get(c,"key3",  22323 )
 	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rvb3,rvb3,ok)    } 
 
 	
 
-	util.Mcache_set(c,"key1","just a scalar stupid string")
+	dsu.Mcache_set(c,"key1","just a scalar stupid string")
 
 
 	myStruct1 := SomeStruct{"this content","is structured"}
-	util.Mcache_set(c,"key2",myStruct1)
+	dsu.Mcache_set(c,"key2",myStruct1)
 	
 
 	myStruct2 := SomeStruct{"wonderbar","is not wonderbra"}
-	util.Mcache_set(c,"key3",myStruct2)
+	dsu.Mcache_set(c,"key3",myStruct2)
 	
 
-	rva1  , ok := util.Mcache_get(c,"key1",  "string" )
+	rva1  , ok := dsu.Mcache_get(c,"key1",  "string" )
 	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rva1,rva1,ok)    } 
 
 
-	rva2  , ok := util.Mcache_get(c,"key1",  22323 )
+	rva2  , ok := dsu.Mcache_get(c,"key1",  22323 )
 	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rva2,rva2,ok)    } 
 
 
-	rva3  , ok := util.Mcache_get(c,"key2",  "string" )
+	rva3  , ok := dsu.Mcache_get(c,"key2",  "string" )
 	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rva3,rva3,ok)    } 
 
 
 	
 	rva4 := SomeStruct{}
-	_    , ok = util.Mcache_get(c,"key3",  &rva4 )
+	_    , ok = dsu.Mcache_get(c,"key3",  &rva4 )
 	if debug { log.Printf("  -------%#v--%T--%v--- \n\n",rva4,rva4,ok)    } 
 
 
 	rva5 := SomeStruct{}
-	util.Mcache_get(c,"key2",  &rva5 )
+	dsu.Mcache_get(c,"key2",  &rva5 )
 	if debug { log.Printf("  --%#v--- \n\n",rva5)}
 
 
