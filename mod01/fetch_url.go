@@ -35,9 +35,6 @@ func fetchURL(w http.ResponseWriter, r *http.Request) {
 		rURL = r.PostFormValue("url")		
 	}
 
-
-	
-
 	tplAdder,tplExec := 	tpl_html.FuncTplBuilder(w,r)
 	tplAdder("n_html_title","Fetch some http data",nil)
 	tplAdder("n_cont_0",c_formFetchURL,nil)
