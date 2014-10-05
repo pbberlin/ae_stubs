@@ -22,6 +22,22 @@ indexes:
   - name: Value
     direction: desc
 
+- kind: counterShard
+  properties:
+  - name: Name
+  - name: ShardId
+
+- kind: counterShard
+  properties:
+  - name: Name
+  - name: ShardId
+    direction: desc
+
+- kind: counterShard
+  properties:
+  - name: ShardId
+  - name: Name
+
 - kind: entry
   ancestor: yes
   properties:

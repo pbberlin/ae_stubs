@@ -180,6 +180,10 @@ func homedir(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 	b1.WriteString(" &nbsp; &nbsp; <a target='_gae' href='http://localhost:8000/mail' >app console local</a><br>\n")
 	b1.WriteString(" &nbsp; &nbsp; <a target='_gae' href='https://appengine.google.com/settings?&app_id=s~libertarian-islands' >app console online</a><br>\n")
 
+	b1.WriteString(` &nbsp; &nbsp; <a target='_gae' 
+			href='http://go-lint.appspot.com/github.com/pbberlin/tools/dsu' 
+			>lint package</a><br>`)
+
 	b1.WriteString("<br>\n")
 	b1.WriteString("<a target='_gae'   href='http://localhost:8085/' >app local</a><br>\n")
 	b1.WriteString("<a target='_gae_r' href='http://libertarian-islands.appspot.com/' >app online</a><br>\n")
@@ -208,13 +212,14 @@ func homedir(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 		util.MonthsBack(24)))
 
 	b1.WriteString("<br>\n")
-	sEnc := "Theo - wir fahrn nach Łódź."
+	x1 := " z" + util.IncrementString("--z")
+	x2 := " Z" + util.IncrementString("--Z")
+	x3 := " 9" + util.IncrementString("--9")
+	x4 := " Peter" + util.IncrementString("--Peter")
+	sEnc := "Theo - wir fahrn nach Łódź <  " + util.IncrementString("Łódź") + x1 + x2 + x3 + x4
 	b1.WriteString(fmt.Sprint("restore string string(  []byte(sEnc) ): ", string([]byte(sEnc)), "<br>"))
 
 	w.Header().Set("Content-Type", "text/html")
 	w.Write(b1.Bytes())
-
-	ell := util.Ellipsoider("aaa", 22)
-	_ = ell
 
 }
