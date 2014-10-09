@@ -6,7 +6,7 @@ runtime: go
 api_version: go1
 #instance_class: B1
 #manual_scaling:
-#  instances: 3
+#  instances: 1
 
 inbound_services:
 - mail

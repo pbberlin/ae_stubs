@@ -10,6 +10,8 @@ import (
 	"appengine/memcache"
 	"time"
 
+	"github.com/pbberlin/tools/util_err"
+
 	_ "strings"
 
 	"bytes"
@@ -31,7 +33,7 @@ Please confirm your email address by clicking on the link below:
  	is routed to
    /_ah/mail/peter@libertarian-islands.appspotmail.com
 */
-func emailReceive1(w http.ResponseWriter, r *http.Request) {
+func emailReceiveAndStore(w http.ResponseWriter, r *http.Request) {
 
 	c := appengine.NewContext(r)
 
@@ -69,16 +71,14 @@ func emailReceive1(w http.ResponseWriter, r *http.Request) {
 			Expiration: 180 * time.Second,
 		}
 
-		if err := memcache.Set(c, item); err != nil {
-			c.Errorf("error adding email to memcache: %v", err)
-		} else {
-			c.Infof("email successfully saved to memcache")
-		}
+		err := memcache.Set(c, item)
+		util_err.Err_http(w, r, err, true, "error adding email to memcache")
 
 	} else {
 		c.Warningf("-empty msg- " + r.URL.Path)
 	}
 
+	// return to sender
 	var m map[string]string = nil
 	m = make(map[string]string)
 	m["sender"] = from
@@ -90,6 +90,7 @@ func emailView(w http.ResponseWriter, r *http.Request) {
 	c := appengine.NewContext(r)
 
 	w.Header().Set("Content-type", "text/plain; charset=utf-8")
+
 	// Get the item from the memcache
 	if item, err := memcache.Get(c, "latestEmail"); err == memcache.ErrCacheMiss {
 		w.Write([]byte("item not in the cache"))
@@ -105,7 +106,7 @@ func emailView(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func emailReceive2(w http.ResponseWriter, r *http.Request) {
+func emailReceiveSimple(w http.ResponseWriter, r *http.Request) {
 
 	c := appengine.NewContext(r)
 
@@ -147,5 +148,13 @@ func emailSend(w http.ResponseWriter, r *http.Request, m map[string]string) {
 	} else {
 		c.Infof("email successfully sent")
 	}
+
+}
+
+func init() {
+
+	http.HandleFunc("/_ah/mail/", emailReceiveAndStore)
+	//http.HandleFunc("/_ah/mail/"  , emailReceiveSimple)
+	http.HandleFunc("/email-view", emailView)
 
 }

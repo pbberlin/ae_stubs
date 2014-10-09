@@ -10,10 +10,10 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-- kind: childLastURL
-  ancestor: yes
+- kind: ShardData
   properties:
-  - name: Value
+  - name: Name
+  - name: ShardId
     direction: desc
 
 - kind: classUrl
@@ -26,22 +26,6 @@ indexes:
   properties:
   - name: Name
   - name: ShardId
-
-- kind: counterShard
-  properties:
-  - name: Name
-  - name: ShardId
-    direction: desc
-
-- kind: counterShard
-  properties:
-  - name: ShardId
-  - name: Name
-
-- kind: entry
-  ancestor: yes
-  properties:
-  - name: Date
     direction: desc
 
 - kind: gbEntry
