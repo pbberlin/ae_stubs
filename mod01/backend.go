@@ -19,6 +19,7 @@ func backend(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 
 	wb(b1, "Diverse", "")
 	wb(b1, "Login", "/login")
+	wb(b1, "Schreib-Methoden", "/write-methods")
 	wb(b1, "Letzte Email", "/email-view")
 	wb(b1, "Blob List", "/blob/list")
 	wb(b1, "Template Demo 1", "/tpl/demo1")

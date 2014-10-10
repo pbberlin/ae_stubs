@@ -7,7 +7,6 @@ import (
 
 	"bytes"
 	"fmt"
-	"github.com/pbberlin/tools/util_err"
 	"io"
 	"log"
 
@@ -17,6 +16,9 @@ import (
 	_ "github.com/pbberlin/tools/blobstore_mgt"
 	_ "github.com/pbberlin/tools/dsu_ancestored_urls"
 	_ "github.com/pbberlin/tools/dsu_persistent_cursor"
+	_ "github.com/pbberlin/tools/email"
+	_ "github.com/pbberlin/tools/fetch"
+	_ "github.com/pbberlin/tools/fulltext"
 	_ "github.com/pbberlin/tools/guestbook"
 	_ "github.com/pbberlin/tools/instance_mgt"
 	_ "github.com/pbberlin/tools/json"
@@ -48,6 +50,6 @@ func init() {
 	http.HandleFunc("/login", login)
 	//http.HandleFunc("/", util_err.Adapter(big_query.ViewHTML))
 	log.Println("init() for mod01 (alias 'default') complete")
-	util_err.StackTrace(5)
+	//util_err.StackTrace(5)
 
 }
