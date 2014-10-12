@@ -1,0 +1,57 @@
+<style>
+	.ib {
+		vertical-align:top;
+		display:inline-block;
+		width:95px;
+	}
+</style>
+
+{{ $mapOrArray := . }} 
+
+{{range $blockTitle, $block := $mapOrArray }}
+
+
+	{{ $nelements := len $block  }} 
+
+	{{ $vRowsCols := fNumCols $nelements  5  }} 
+
+
+	{{range  $iRow, $numCols :=  $vRowsCols }}
+
+		{{ $widthPercent := fMult 20 $numCols     }} 
+		
+		<div class='ib' style='width: {{$widthPercent}}%;vertical-align:top; 
+		border: 1px solid #aab; margin-bottom:10px;' >
+		
+			{{if not $iRow}}
+				<span class='ib' style='font-weight:bold;width:200px;' >
+					{{ fChop $blockTitle 3}}
+				</span><br>
+			{{end}}
+
+			<!-- {{$numCols}}<br> -->
+			
+			{{$vNumCols := fMakeRange $numCols}}
+
+			{{range  $j1, $j2 :=  $vNumCols }}
+				{{ $iElem :=  fMult $iRow 5 | fAdd $j1 }}
+				<!-- 
+				 row {{$iRow}}
+				 col {{$j1}}
+				 elem {{$iElem}}
+
+				-->
+
+
+				{{template "tpl_legend" fAccessElement $block $iElem }}
+			{{end}}
+		</div>
+
+
+	{{end}}
+
+
+
+{{end}}	
+
+
