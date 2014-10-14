@@ -19,7 +19,7 @@
 	{{with .Target}}
 		<a href='{{$a}}' target='_{{.}}' >{{.Linktext}}</a>
 	{{else}}
-		<a href='{{$a}}'                 >{{.Linktext}}</a>
+		<a href='{{$a}}' target='_appPage' >{{.Linktext}}</a>
 	{{end}}
 	{{with .Description}}
 		<br><span style='font-size:10px'>{{.}}</span>

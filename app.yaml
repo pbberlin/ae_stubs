@@ -8,6 +8,30 @@ skip_files:
 - ^(.*/)?\..*$
 
 handlers:
+- url: /images
+  static_dir: static/img
+  expiration: "4d 5h"
+
+
+- url: /static
+  static_dir: static
+#  upload: static//.*\.(gif|png|ico|jpg|css|html)$
+
+
+- url: /favicon\.ico
+  static_files: static/favicon\.ico
+  upload: static/favicon\.ico
+
+
+#- url: /img/(.*)
+#  static_files: static/img/\1
+#  upload: static/images/.*\.(gif|png|jpg)$
+#  http_headers:
+#    X-Foo-Header: "foo"
+#    X-Bar-Header: "bar"
+
+
+
 - url: /.*
   # magic string:
   script: _go_app
