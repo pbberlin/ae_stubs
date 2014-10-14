@@ -33,6 +33,10 @@ handlers:
 
 - url: /static
   static_dir: static
+  # THIS must be taken away because of quota
+  # only chart backgrounds and few images need to be 
+  # opened by the go app
+  application_readable: true
 
 - url: /templates
   static_dir: templates
