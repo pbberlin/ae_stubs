@@ -1,0 +1,43 @@
+	* {
+	
+		margin: 0px;
+		padding: 0px;
+	
+		line-height: 140%;
+		font-family: 'Times New Roman';
+		font-size: 14px;
+		
+	
+		/* width not changed by padding or border-width */	
+	   -webkit-box-sizing: border-box;	
+	      -moz-box-sizing: border-box;	
+	           box-sizing: border-box;
+	   
+	
+		/* 
+			hyphenation
+			requires lang='de'  or lang='en' attribute in tag 
+		*/
+		-webkit-hyphens: auto;
+		   -moz-hyphens: auto;
+		    -ms-hyphens: auto;
+		        hyphens: auto; 	
+		hyphenate-limit-chars: auto 3;
+		hyphenate-limit-lines: 2;        
+		
+	}
+
+
+	/* force scrollbar always*/
+	html {
+		overflow-y: scroll;
+	}
+
+	a {
+		font-size: 100%;
+	}
+	
+	pre {
+		font-size: 12px;
+		font-family: "Lucida Console", Monaco, monospace	
+	}

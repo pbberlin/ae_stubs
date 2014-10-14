@@ -1,16 +1,32 @@
+{{$a := .Url}}
 
 
-			{{$a := .Url}}
-			<span class='ib' style='
-					width:240px;
-					margin: 1px;
-					margin-right:8px; 
-					border: 1px solid #aaf;
-					' 
-			>
-					{{with .Target}}
-						<a href='{{$a}}' target='_{{.}}' >{{.Linktext}}</a>
-					{{else}}
-						<a href='{{$a}}'                 >{{.Linktext}}</a>
+
+
+
+<span class='blc bl2 wn' style='
+					{{if not .IsFirst }}
+						border-left: 1px solid #aaf;
 					{{end}}
-			</span>
+					{{if .IsLast}}
+						margin-right:1px;
+					{{end}}
+					line-height: 100%;
+					aabackground-color:#aaa;
+					
+					' 
+>
+	{{with .Target}}
+		<a href='{{$a}}' target='_{{.}}' >{{.Linktext}}</a>
+	{{else}}
+		<a href='{{$a}}'                 >{{.Linktext}}</a>
+	{{end}}
+	{{with .Description}}
+		<br><span style='font-size:10px'>{{.}}</span>
+	{{else}}
+		<!-- nothing -->
+	{{end}}
+
+	<br><span style='font-size:10px'>({{.Size}} chars)</span>
+	
+</span>

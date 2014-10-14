@@ -1,32 +1,78 @@
-<style>
-	.ib {
-		vertical-align:top;
+<Style>
+
+	/*  block level common  */ 
+	.blc {
 		display:inline-block;
-		width:95px;
+		vertical-align:top;
 	}
+
+
+	/*  block level 1  */ 
+	.bl1-no-block-spaces {
+		font-size:0px;
+	}
+
+	.bl1 {
+		font-size: 8px;		
+		vertical-align:top; 
+		aaborder: 1px solid #99c;
+		margin: 0px;
+		margin-top: 2px
+		margin-bottom:8px;
+		background-color: #eef;
+		aamargin-left: 4px;
+
+	}
+
+
+	.bl2 {
+		font-size:14px;
+
+		margin-top:    1px;
+		margin-bottom: 4px;
+
+		margin-left : 2px;
+		margin-right: 5px;
+		padding-left: 8px;
+		aabackground-color: #eef;
+	}
+
 </style>
 
 {{ $mapOrArray := .VB1 }} 
 
-{{range $B1Title, $B1 := $mapOrArray }}
-
+{{range $iB1, $B1 := $mapOrArray }}
 
 	{{ $nelements := len $B1.VB2  }} 
 
 	{{ $vRowsCols := fNumCols $nelements  5  }} 
 
-
 	{{range  $iRow, $numCols :=  $vRowsCols }}
 
-		{{ $widthPercent := fMult 20 $numCols     }} 
+
+		{{if $B1.StartNewRow}}
+			<span style='line-height:1px;'><br></span>
+		{{end}}
+
 		
-		<div class='ib' style='width: {{$widthPercent}}%;vertical-align:top; 
-		border: 1px solid #99c; margin-bottom:10px;' >
+		<span class='bl1-no-block-spaces' >
+		<div class='blc bl1 w{{$numCols}}' 
+			style='' 
+		>
 		
 			{{if not $iRow}}
-				<span class='ib' style='font-weight:bold;width:200px;' >
-					{{ fChop $B1.Heading 3}}
-				</span><br>
+				<!-- first row with heading -->
+				<span class='blc bl2' style='
+						font-weight:bold;
+						font-size:16px;
+						width:95%;
+						margin-top:4px;
+						margin-bottom:0px;
+					' 
+				>
+					{{ fChop $B1.Heading 0}}
+				</span>
+				<br>
 			{{end}}
 
 			<!-- {{$numCols}}<br> -->
@@ -39,14 +85,13 @@
 				 row {{$iRow}}
 				 col {{$j1}}
 				 elem {{$iElem}}
-
 				-->
 
-				{{template "tpl_legend" fAccessElement $B1.VB2 $iElem}}
+				{{template "tpl_legend" fAccessElementB2 $B1.VB2 $iElem}}
 
-				{{/* template "tpl_legend" fAccessElement $B1 $iElem */}}
 			{{end}}
 		</div>
+		</span class='bl1-no-block-spaces' >
 
 
 	{{end}}
