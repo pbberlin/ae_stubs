@@ -1,0 +1,107 @@
+<Style>
+
+	/*  block level common  */ 
+	.blc {
+		display:inline-block;
+		vertical-align:top;
+	}
+
+
+	/*  block level 1  */ 
+	.bl1-no-block-spaces {
+		font-size:0px;
+	}
+
+	.bl1 {
+		font-size: 8px;		
+		vertical-align:top; 
+		aaborder: 1px solid #99c;
+		margin: 0px;
+		margin-top: 2px
+		margin-bottom:8px;
+		background-color: #eef;
+		aamargin-left: 4px;
+
+	}
+
+
+	.bl2 {
+		font-size:14px;
+
+		margin-top:    1px;
+		margin-bottom: 4px;
+
+		margin-left : 2px;
+		margin-right: 5px;
+		padding-left: 8px;
+		aabackground-color: #eef;
+	}
+
+</style>
+
+{{.NumB1}} Blocks with {{.NumB2}} Elements<br>
+
+
+
+{{ $mapOrArray := .VB1 }} 
+
+{{range $iB1, $B1 := $mapOrArray }}
+
+	{{ $nelements := len $B1.VB2  }} 
+
+	{{ $vRowsCols := fNumCols $nelements  5  }} 
+
+	{{range  $iRow, $numCols :=  $vRowsCols }}
+
+
+		{{if $B1.StartNewRow}}
+			<span style='line-height:1px;'><br></span>
+		{{end}}
+
+		
+		<span class='bl1-no-block-spaces' >
+		<div class='blc bl1 w{{$numCols}}' 
+			style='' 
+		>
+		
+			{{if not $iRow}}
+				<!-- first row with heading -->
+				<span class='blc bl2' style='
+						font-weight:bold;
+						font-size:16px;
+						width:95%;
+						margin-top:4px;
+						margin-bottom:0px;
+					' 
+				>
+					{{ fChop $B1.Heading 0}}
+				</span>
+				<br>
+			{{end}}
+
+			<!-- {{$numCols}}<br> -->
+			
+			{{$vNumCols := fMakeRange $numCols}}
+
+			{{range  $j1, $j2 :=  $vNumCols }}
+				{{ $iElem :=  fMult $iRow 5 | fAdd $j1 }}
+				<!-- 
+				 row {{$iRow}}
+				 col {{$j1}}
+				 elem {{$iElem}}
+				-->
+
+				{{template "tpl_legend" fAccessElementB2 $B1.VB2 $iElem}}
+
+			{{end}}
+		</div>
+		</span class='bl1-no-block-spaces' >
+
+
+	{{end}}
+
+
+
+{{end}}	
+
+

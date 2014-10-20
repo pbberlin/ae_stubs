@@ -1,0 +1,21 @@
+/*
+	http://stackoverflow.com/questions/12771982/vertically-centering-a-div-in-body
+	<div class = "body-vertically-centered-1">
+		<div class = "body-vertically-centered-2">
+		</div>
+	</div>
+*/
+	html, body {
+	    height: 100%;
+	}
+	.body-vertically-centered-1 {
+	    height: 100%;
+	    width: 100%;
+	    display: table;
+	}
+	.body-vertically-centered-2 {
+	    display: table-cell;
+	    height: 100%;
+	    vertical-align: middle;
+	}
+

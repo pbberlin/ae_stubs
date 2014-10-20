@@ -51,30 +51,33 @@
 
 	<!--
 		editorial new block row
+	-->
 	{{if $B1.StartNewRow}}
 		<div 
 			class='w{{$NColsViewport}}' 
 			style='display:block; line-height:1px; clear:both;' 
-		>  </div>
+		> 	</div>
 	{{end}}
-	-->
 
 	{{ $nelements := len $B1.VB2  }} 
 
 	<span class='bl1-no-block-spaces' >
 	<div class='blc bl1 w{{$B1.NCols}}' 
 		style='
-		aafloat:left;
+		aaborder-top: 1px solid #aab; 
+		aafloat:left; 
 		padding-bottom:10px;
+		aamargin-right:2px;
+		aamargin:4px;
 		' 
 	>
 
 
-	{{$vNumCols := fMakeRange  $B1.NCols  }}
-	{{range  $iCol1, $iCol2 :=  $vNumCols }}
+	{{ $vRows := fMakeRange  $B1.NRows  }} 
+	{{range  $iRow1, $iRow2 :=  $vRows }}
 
 		
-		{{if not $iCol1}}
+		{{if not $iRow1}}
 			<!-- first row with heading -->
 			<span class='blc bl2' style='
 					font-weight:bold;
@@ -84,40 +87,20 @@
 					margin-bottom:0px;
 				' 
 			>
-				{{ fChop $B1.Heading 0}}   
-				
-				<!--
-				<span style='font-size:11px;font-weight:normal;'>
-					&nbsp; c{{$B1.NCols}}-r{{$B1.NRows}} {{$nelements}} {{$B1.Discrepancy}}
-				</span> 
-				-->
-			</span> 
+				{{ fChop $B1.Heading 0}}
+			</span>
 			<br>
 		{{end}}
 
-			<div class='wn' 
-				name='force-columnar-align'
-				style='
-					display:inline-block;
-					position:relative;
-					vertical-align:top;
-					aabackground-color:#aaa;
-				' 
-			>
-				{{ $vRows := fMakeRange  $B1.NRows  }} 
-				{{range  $iRow1, $iRow2 :=  $vRows }}
-				
-					{{ $iElem :=  fMult $iCol1 $B1.NRows | fAdd $iRow1 }}
-					{{ $inRange :=  lt  $iElem $nelements }}
-					{{if $inRange}}
-						<!--
-						<div style='font-size:9px;position:absolute'>{{$iCol1}}-{{$iRow1}} {{$iElem}}</div>
-						-->
-						
-						{{template "tpl_legend" fAccessElementB2 $B1.VB2 $iElem}}
-					{{end}}
-				{{end}}
-			</div> 
+		
+		{{$vNumCols := fMakeRange  $B1.NCols  }}
+		{{range  $iCol1, $iCol2 :=  $vNumCols }}
+			{{ $iElem :=  fMult $iRow1 $B1.NCols | fAdd $iCol1 }}
+			{{ $inRange :=  lt  $iElem $nelements }}
+			{{if $inRange}}
+				{{template "tpl_legend" fAccessElementB2 $B1.VB2 $iElem}}
+			{{end}}
+		{{end}}
 
 
 	{{end}}
