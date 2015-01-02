@@ -26,8 +26,9 @@ import (
 )
 
 var sq func(a ...interface{}) string = fmt.Sprint
-var sp func(format string, a ...interface{}) string = fmt.Sprintf
-var fp func(w io.Writer, format string, a ...interface{}) (int, error) = fmt.Fprintf
+var spf func(format string, a ...interface{}) string = fmt.Sprintf
+var pf func(format string, a ...interface{}) (int, error) = fmt.Printf
+var opf func(w io.Writer, format string, a ...interface{}) (int, error) = fmt.Fprintf
 
 func init() {
 

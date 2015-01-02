@@ -5,15 +5,17 @@ import (
 
 	_ "net/http/pprof"
 
-	"appengine"
-	"appengine/urlfetch"
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+
 	"github.com/pbberlin/tools/instance_mgt"
 	"github.com/pbberlin/tools/util"
 	"github.com/pbberlin/tools/util_err"
-	"io"
-	"io/ioutil"
+
+	"appengine"
+	"appengine/urlfetch"
 )
 
 func writeMethods(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
@@ -23,7 +25,7 @@ func writeMethods(w http.ResponseWriter, r *http.Request, m map[string]interface
 	client := urlfetch.Client(c)
 
 	ii := instance_mgt.Get(w, r, m)
-	resp2, err := client.Get(sp(`http://%s/write-methods-read`, ii.Hostname))
+	resp2, err := client.Get(spf(`http://%s/write-methods-read`, ii.Hostname))
 	util_err.Err_http(w, r, err, false)
 
 	bufDemo := new(bytes.Buffer)
@@ -82,33 +84,33 @@ func writeMethods(w http.ResponseWriter, r *http.Request, m map[string]interface
 	//
 	//
 	//
-	fp(w, "operations with a bytes buffer\n")
+	opf(w, "operations with a bytes buffer\n")
 	var buf1 *bytes.Buffer
 	buf1 = new(bytes.Buffer) // not optional on buffer pointer
 	buf1.ReadFrom(resp2.Body)
 
 	buf1 = new(bytes.Buffer)
-	fp(buf1, "\t\tbuf1 content %v (filled via Fprintf)\n", 222)
+	opf(buf1, "\t\tbuf1 content %v (filled via Fprintf)\n", 222)
 
-	fp(w, "FOUR methods of dumping buf1 into resp.w:\n")
-	fp(w, "\tw.Write\n")
+	opf(w, "FOUR methods of dumping buf1 into resp.w:\n")
+	opf(w, "\tw.Write\n")
 	w.Write(buf1.Bytes())
-	fp(w, "\tFprint\n")
-	fp(w, buf1.String())
-	fp(w, "\tio.WriteString\n")
+	opf(w, "\tFprint\n")
+	opf(w, buf1.String())
+	opf(w, "\tio.WriteString\n")
 	io.WriteString(w, buf1.String())
-	fp(w, "\tio.Copy \n")
+	opf(w, "\tio.Copy \n")
 	io.Copy(w, buf1) // copy the bytes.Buffer into w
-	fp(w, " \t\t\tio.copy exhausts buf1 - Fprinting again yields %q ", buf1.String())
-	fp(w, buf1.String())
-	fp(w, "\n\n\n")
+	opf(w, " \t\t\tio.copy exhausts buf1 - Fprinting again yields %q ", buf1.String())
+	opf(w, buf1.String())
+	opf(w, "\n\n\n")
 
 	//
 	//
 	//
-	fp(w, "ioutil.ReadAll\n")
+	opf(w, "ioutil.ReadAll\n")
 	var content []byte
-	resp3, err := client.Get(sp(`http://%s/write-methods-read`, ii.Hostname))
+	resp3, err := client.Get(spf(`http://%s/write-methods-read`, ii.Hostname))
 	util_err.Err_http(w, r, err, false)
 	content, _ = ioutil.ReadAll(resp3.Body)
 	scont := string(content)
@@ -121,7 +123,7 @@ func writeMethods(w http.ResponseWriter, r *http.Request, m map[string]interface
 
 // simple helper for reading http.response.Body
 func writeMethodsResponder(w http.ResponseWriter, r *http.Request) {
-	fp(w, "some http response body string")
+	opf(w, "some http response body string")
 }
 
 func init() {
