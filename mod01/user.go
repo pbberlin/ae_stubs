@@ -24,6 +24,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusFound)
 		return
 	}
-	fmt.Fprintf(w, "Hello, %v!", u)
+	fmt.Fprintf(w, "Hello, %v, %v, %v, %v!", u, u.ID, u.Email, u.FederatedIdentity)
 	
 }

@@ -23,3 +23,9 @@ indexes:
   properties:
   - name: Date
     direction: desc
+
+
+- kind: dsu.WrapBlob
+  properties:
+  - name: Category
+    direction: asc
