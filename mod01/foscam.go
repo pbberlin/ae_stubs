@@ -280,7 +280,7 @@ func init() {
 		dns_cam = "ds7934.myfoscam.org:8081"
 	}
 
-	http.HandleFunc("/foscam-status", util_err.Adapter(foscamStatus))
-	http.HandleFunc("/foscam-toggle", util_err.Adapter(foscamToggle))
+	http.HandleFunc("/foscam-status", util_appengine.Adapter(foscamStatus))
+	http.HandleFunc("/foscam-toggle", util_appengine.Adapter(foscamToggle))
 
 }

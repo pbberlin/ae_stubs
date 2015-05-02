@@ -12,6 +12,7 @@ import (
 
 	"github.com/pbberlin/tools/instance_mgt"
 	"github.com/pbberlin/tools/util"
+	"github.com/pbberlin/tools/util_appengine"
 	"github.com/pbberlin/tools/util_err"
 
 	"appengine"
@@ -127,6 +128,6 @@ func writeMethodsResponder(w http.ResponseWriter, r *http.Request) {
 }
 
 func init() {
-	http.HandleFunc("/write-methods", util_err.Adapter(writeMethods))
+	http.HandleFunc("/write-methods", util_appengine.Adapter(writeMethods))
 	http.HandleFunc("/write-methods-read", writeMethodsResponder)
 }
