@@ -3,13 +3,11 @@ package main
 import (
 	"net/http"
 
-	_ "net/http/pprof"
-
-
-
 	"fmt"
 	"io"
 	"log"
+
+	_ "net/http/pprof" // profiling
 
 	// not used - but init() functions wanted for
 	// httpHandler registrations

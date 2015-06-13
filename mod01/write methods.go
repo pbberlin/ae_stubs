@@ -11,7 +11,7 @@ import (
 	"io/ioutil"
 
 	"github.com/pbberlin/tools/instance_mgt"
-	"github.com/pbberlin/tools/util"
+	"github.com/pbberlin/tools/pbstrings"
 	"github.com/pbberlin/tools/util_appengine"
 	"github.com/pbberlin/tools/util_err"
 
@@ -115,7 +115,7 @@ func writeMethods(w http.ResponseWriter, r *http.Request, m map[string]interface
 	util_err.Err_http(w, r, err, false)
 	content, _ = ioutil.ReadAll(resp3.Body)
 	scont := string(content)
-	scont = util.Ellipsoider(scont, 20)
+	scont = pbstrings.Ellipsoider(scont, 20)
 	w.Write([]byte(scont))
 
 	fmt.Fprint(w, "</pre>")

@@ -10,6 +10,8 @@ import (
 
 	_ "net/http/pprof"
 
+	htmlpb "github.com/pbberlin/tools/pbhtml"
+	"github.com/pbberlin/tools/pbstrings"
 	"github.com/pbberlin/tools/util"
 	"github.com/pbberlin/tools/util_appengine"
 	"github.com/pbberlin/tools/util_err"
@@ -101,7 +103,7 @@ func makeRequest(w http.ResponseWriter, r *http.Request, path string) CGI_Result
 
 	if cgiRes.Result != "0" {
 		opf(w, "<b>RESPONSE shows bad mood:</b><br>\n")
-		psXml := util.IndentedDump(cgiRes)
+		psXml := pbstrings.IndentedDump(cgiRes)
 		dis := strings.Trim(*psXml, "{}")
 		opf(w, "<pre style='font-size:10px;line-height:11px;'>%v</pre>", dis)
 	}
@@ -171,13 +173,13 @@ func logRetrieve(w http.ResponseWriter, r *http.Request) {
 
 func foscamStatus(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 
-	util.SetNocacheHeaders(w, false)
+	htmlpb.SetNocacheHeaders(w, false)
 
 	logRetrieve(w, r)
 
 	cgiRes := makeRequest(w, r, path_get_alarm)
 
-	psXml := util.IndentedDump(cgiRes)
+	psXml := pbstrings.IndentedDump(cgiRes)
 	dis := strings.Trim(*psXml, "{}")
 	dis = strings.Replace(dis, "\t", "", -1)
 	dis = strings.Replace(dis, " ", "", -1)
@@ -200,7 +202,7 @@ func foscamStatus(w http.ResponseWriter, r *http.Request, m map[string]interface
 
 func foscamToggle(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 
-	util.SetNocacheHeaders(w, false)
+	htmlpb.SetNocacheHeaders(w, false)
 
 	ssecs := r.FormValue("sleep")
 	if ssecs != "" {
@@ -247,11 +249,11 @@ func foscamToggle(w http.ResponseWriter, r *http.Request, m map[string]interface
 	}
 
 	opf(w, "<pre>")
-	// disS2 := util.Breaker(s2, 50)
+	// disS2 := pbstrings.Breaker(s2, 50)
 	// for _, v := range disS2 {
 	// 	opf(w, "%v\n", v)
 	// }
-	disRecombined := util.Breaker(recombined, 50)
+	disRecombined := pbstrings.Breaker(recombined, 50)
 	for _, v := range disRecombined {
 		opf(w, "%v\n", v)
 	}
