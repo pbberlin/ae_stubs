@@ -12,7 +12,7 @@ inbound_services:
 - mail
 - channel_presence
 - xmpp_message
-- warmup
+# - warmup
 
 
 # not uploaded to gae
