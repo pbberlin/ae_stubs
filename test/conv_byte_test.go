@@ -1,14 +1,16 @@
 package main
 
 import (
-	"appengine/aetest"
 	"testing"
+
+	"appengine/aetest"
 
 	"bytes"
 	"image"
 	"log"
 
 	"github.com/pbberlin/tools/conv"
+	"github.com/pbberlin/tools/dsu"
 	"github.com/pbberlin/tools/util"
 )
 
@@ -96,38 +98,6 @@ func Test_string_to_VVByte_and_back(t *testing.T) {
 	}
 
 }
-
-/*
-// UNUSED
-// long string to map of sbyte
-//   two inverse functions
-func Test_string_to_mapvbyte_and_back(t *testing.T) {
-
-	// converting to map is pointless
-	return
-
-
-
-	mapr,_ := conv.String_to_mapvbyte(str_b64)
-	for i,v := range mapr {
-		log.Printf("%v -  %s \n",i,v)
-	}
-
-
-	buff1,_ := conv.Mapvbyte_to_string(mapr)
-	if buff1.String() != str_b64{
-		t.Errorf("encode - decode yields = %s", buff1.String() )
-	}
-
-	vbyte,_ := conv.Mapvbyte_to_string_app(mapr)
-	inverse := string(vbyte)
-	if inverse != str_b64{
-		t.Errorf("encode - decode yields = %s", inverse )
-	}
-
-
-}
-*/
 
 type SomeStruct struct {
 	S1 string `json:"s1"`
