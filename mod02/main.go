@@ -11,7 +11,7 @@ import (
 
 	// not used - but init() functions wanted for
 	// httpHandler registrations
-	_ "github.com/pbberlin/tools/instance_mgt"
+	_ "github.com/pbberlin/tools/appengine/instance_mgt"
 )
 
 func init() {

@@ -9,7 +9,7 @@ import (
 
 	// not used - but init() functions wanted for
 	// httpHandler registrations
-	_ "github.com/pbberlin/tools/backend"
+	_ "github.com/pbberlin/tools/appengine/backend"
 	// _ "github.com/pbberlin/tools/big_query"
 	// _ "github.com/pbberlin/tools/blobstore_mgt"
 	// _ "github.com/pbberlin/tools/dsu_ancestored_urls"

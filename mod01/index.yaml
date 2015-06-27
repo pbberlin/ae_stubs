@@ -28,6 +28,17 @@ indexes:
   - name: ShardId
     direction: desc
 
+- kind: fso
+  ancestor: yes
+  properties:
+  - name: SKey
+
+- kind: fso
+  ancestor: yes
+  properties:
+  - name: SKey
+    direction: desc
+
 - kind: gbEntry
   ancestor: yes
   properties:

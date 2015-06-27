@@ -15,6 +15,7 @@ import (
 	_ "github.com/pbberlin/tools/appengine/namespaces_taskqueues"
 	_ "github.com/pbberlin/tools/big_query"
 	_ "github.com/pbberlin/tools/dsu/ancestored_urls"
+	_ "github.com/pbberlin/tools/dsu/filesys"
 	_ "github.com/pbberlin/tools/dsu/persistent_cursor"
 	_ "github.com/pbberlin/tools/email"
 	_ "github.com/pbberlin/tools/foscam"
