@@ -21,7 +21,8 @@ import (
 	_ "github.com/pbberlin/tools/foscam"
 	_ "github.com/pbberlin/tools/json"
 	_ "github.com/pbberlin/tools/net/http/proxy1"
-	_ "github.com/pbberlin/tools/pboauth"
+	_ "github.com/pbberlin/tools/oauthpb"
+	_ "github.com/pbberlin/tools/util" // counter reset
 	_ "github.com/pbberlin/tools/write_methods"
 )
 

@@ -44,3 +44,4 @@ indexes:
   properties:
   - name: Date
     direction: desc
+
