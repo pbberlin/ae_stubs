@@ -11,7 +11,7 @@ import (
 	_ "github.com/pbberlin/tools/appengine/blobstore_mgt"
 	_ "github.com/pbberlin/tools/appengine/fulltext"
 	_ "github.com/pbberlin/tools/appengine/guestbook"
-	_ "github.com/pbberlin/tools/appengine/instance_mgt"
+	_ "github.com/pbberlin/tools/appengine/instance_info"
 	_ "github.com/pbberlin/tools/appengine/namespaces_taskqueues"
 	_ "github.com/pbberlin/tools/big_query"
 	_ "github.com/pbberlin/tools/dsu/ancestored_urls"
