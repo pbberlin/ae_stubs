@@ -20,7 +20,7 @@ import (
 	// _ "github.com/pbberlin/tools/guestbook"
 	// _ "github.com/pbberlin/tools/instance_mgt"
 	// _ "github.com/pbberlin/tools/json"
-	// _ "github.com/pbberlin/tools/namespaces_taskqueues"
+	// _ "github.com/pbberlin/tools/namespaced_taskqueued_cntr"
 )
 
 func main() {
