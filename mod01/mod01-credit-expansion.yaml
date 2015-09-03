@@ -1,4 +1,4 @@
-application: libertarian-islands
+application: credit-expansion
 module: default
 #module: mod01
 version: v2
@@ -9,9 +9,9 @@ api_version: go1
 #  instances: 1
 
 inbound_services:
-- mail
-- channel_presence
-- xmpp_message
+# - mail
+# - channel_presence
+# - xmpp_message
 # - warmup
 
 
@@ -27,8 +27,8 @@ handlers:
 
 # this one - without regex works:
 - url: /favicon.ico
-  static_files: static/favicon.ico
-  upload: static/favicon.ico
+  static_files: static/favicon2.ico
+  upload: static/favicon2.ico
 
 # this one strangely NOT works:
 - url: /favicon\.ico

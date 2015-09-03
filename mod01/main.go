@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	_ "net/http/pprof" // profiling
+	_ "net/http/pprof" // profiling  ... http://.../debug/pprof
 
 	// not used - but init() functions wanted for
 	// httpHandler registrations
@@ -18,15 +18,15 @@ import (
 	_ "github.com/pbberlin/tools/dsu/persistent_cursor"
 	_ "github.com/pbberlin/tools/email"
 	_ "github.com/pbberlin/tools/foscam"
-	_ "github.com/pbberlin/tools/json"
 	_ "github.com/pbberlin/tools/net/http/proxy1"
 	_ "github.com/pbberlin/tools/oauthpb"
-	_ "github.com/pbberlin/tools/os/fsi/aefs"
+	_ "github.com/pbberlin/tools/os/fsi/dsfs"
+	"github.com/pbberlin/tools/runtimepb"
 	_ "github.com/pbberlin/tools/util" // counter reset
 	_ "github.com/pbberlin/tools/write_methods"
 )
 
 func init() {
-	log.Println("init() for mod01 (alias 'default') complete")
-	//util_err.StackTrace(5)
+	line1, file1 := runtimepb.LineFileXUp(0)
+	log.Printf("init() for mod01 (alias 'default') complete  %v:%v  \n", file1, line1)
 }
