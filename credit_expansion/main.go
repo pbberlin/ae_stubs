@@ -12,6 +12,7 @@ import (
 	"github.com/pbberlin/tools/net/http/loghttp"
 	"github.com/pbberlin/tools/net/http/tplx"
 	"github.com/pbberlin/tools/net/http/upload" // upload receive
+	"github.com/pbberlin/tools/oauthpb"
 	"github.com/pbberlin/tools/os/fsi/dsfs"
 	"github.com/pbberlin/tools/os/fsi/memfs"
 	"github.com/pbberlin/tools/os/fsi/webapi"
@@ -28,7 +29,15 @@ func init() {
 	http.HandleFunc("/backend-secret", backendHandler)
 
 	dynSrv := func(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
-		appID := appengine.AppID(appengine.NewContext(r))
+
+		auth, msg := oauthpb.Auth(r)
+		if auth == false {
+			w.Write([]byte(msg))
+			return
+		}
+
+		c := appengine.NewContext(r)
+		appID := appengine.AppID(c)
 		if appID == "credit-expansion" {
 
 			prefix := "/mnt02"
