@@ -8,3 +8,4 @@ REM appcfg.py --email=peter.buchmann@web.de update         .
     appcfg.py --email=peter.buchmann@web.de update   mod01/mod01.yaml mod02/mod02.yaml
     appcfg.py --email=peter.buchmann@web.de update_indexes   mod01  -A libertarian-islands
     appcfg.py --email=peter.buchmann@web.de vacuum_indexes   mod01  -A libertarian-islands
+pause

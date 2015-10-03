@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"appengine"
 
-	"github.com/pbberlin/tools/net/http/blchain"
+	"github.com/pbberlin/tools/net/http/coinbase"
 	"github.com/pbberlin/tools/net/http/fileserver"
 	"github.com/pbberlin/tools/net/http/htmlfrag"
 	"github.com/pbberlin/tools/net/http/loghttp"
@@ -26,22 +27,24 @@ var fs1 = memfs.New(
 func init() {
 
 	upload.InitHandlers()
-	blchain.InitHandlers()
+	coinbase.InitHandlers()
 	http.HandleFunc(webapi.UriDeleteSubtree, loghttp.Adapter(webapi.DeleteSubtree))
 
 	http.HandleFunc("/backend-secret", backendHandler)
 
 	dynSrv := func(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 
-		auth, msg := oauthpb.Auth(r)
-		if auth == false {
-			w.Write([]byte(msg))
-			return
+		if strings.Contains(r.URL.Path, "/member/") {
+			auth, msg := oauthpb.Auth(r)
+			if auth == false {
+				w.Write([]byte(msg))
+				return
+			}
 		}
 
 		c := appengine.NewContext(r)
 		appID := appengine.AppID(c)
-		if appID == "credit-expansion" {
+		if appID == "tec-news" {
 
 			prefix := "/mnt02"
 			// prefix = "/xxx"
@@ -102,5 +105,7 @@ func backendHandler(w http.ResponseWriter, r *http.Request) {
 	htmlfrag.Wb(w, "fsi tools", "")
 	htmlfrag.Wb(w, "remove subtr", webapi.UriDeleteSubtree, " ")
 	htmlfrag.Wb(w, "memfs dump", "/memfsdmp", " ")
+
+	wpf(w, coinbase.BackendUIRendered().String())
 
 }
