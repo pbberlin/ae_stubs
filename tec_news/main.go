@@ -70,12 +70,15 @@ func init() {
 					<script src="https://sandbox.coinbase.com/assets/button.js" type="text/javascript"></script>				`
 				_, _ = btnLive, btnTest
 
+				backPath := strings.Replace(r.URL.Path, "/member", "", 1)
+				anchPath := fmt.Sprintf("<a href='%v'>Back to introduction</a><br><br>", backPath)
+
 				wpf(w,
 					tplx.ExecTplHelper(bstpl, map[string]interface{}{
 						"HtmlTitle":       "Access restricted",
 						"HtmlDescription": "", // reminder
 						"HtmlContent": template.HTML("Access is restricted<br>" + msg +
-							btnTest + "<br>")}))
+							btnTest + "<br>" + anchPath)}))
 
 				return
 			}
@@ -121,8 +124,14 @@ func init() {
 
 		w.Write(fs1.Dump())
 	}
-	http.HandleFunc("/memfsdmp", loghttp.Adapter(dmpMemfs))
+	http.HandleFunc("/dump-memfs", loghttp.Adapter(dmpMemfs))
 
+	resetMemfs := func(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
+		fs1 = memfs.New(
+			memfs.Ident(tplx.TplPrefix[1:]),
+		)
+	}
+	http.HandleFunc("/reset-memfs", loghttp.Adapter(resetMemfs))
 }
 
 var wpf = fmt.Fprint
@@ -148,7 +157,8 @@ func backendHandler(w http.ResponseWriter, r *http.Request) {
 
 	htmlfrag.Wb(w, "fsi tools", "")
 	htmlfrag.Wb(w, "remove subtr", webapi.UriDeleteSubtree, " ")
-	htmlfrag.Wb(w, "memfs dump", "/memfsdmp", " ")
+	htmlfrag.Wb(w, "memfs dump", "/dump-memfs", " ")
+	htmlfrag.Wb(w, "memfs reset", "/reset-memfs", " ")
 
 	wpf(w, coinbase.BackendUIRendered().String())
 
