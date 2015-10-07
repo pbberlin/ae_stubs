@@ -9,6 +9,7 @@ import (
 
 	"appengine"
 
+	"github.com/pbberlin/tools/dsu"
 	"github.com/pbberlin/tools/net/http/coinbase"
 	"github.com/pbberlin/tools/net/http/fileserver"
 	"github.com/pbberlin/tools/net/http/htmlfrag"
@@ -35,11 +36,15 @@ func init() {
 
 	dynSrv := func(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 
+		lg, b := loghttp.BuffLoggerUniversal(w, r)
+		_ = b
+
 		if strings.Contains(r.URL.Path, "/member/") {
 			auth, usr, msg := oauthpb.Auth(r)
 			if msg != "" {
 				msg += "<br>"
 			}
+
 			if auth == false || true {
 				r.Header.Set("X-Custom-Header-Counter", "nocounter")
 				htmlfrag.SetNocacheHeaders(w)
@@ -53,7 +58,7 @@ func init() {
 				btnLive := `
 					<div style='height:10px;'>&nbsp;</div>
 					<a class="coinbase-button" data-code="aa4e03abbc5e2f5321d27df32756a932" 
-						data-custom="svcid=` + r.URL.Path + `&uid=` + usrID + `" 
+						data-custom="productID=` + r.URL.Path + `&uID=` + usrID + `" 
 						href="https://www.coinbase.com/checkouts/aa4e03abbc5e2f5321d27df32756a932" 
 					>Pay With Bitcoin</a>
 					<script src="https://www.coinbase.com/assets/button.js" type="text/javascript"></script>
@@ -63,22 +68,40 @@ func init() {
 					<div style='height:10px;'>&nbsp;</div>
 					<a class="coinbase-button" 
 						data-code="0025d69ea925b48ba2b7adeb2a911ca2" 
-						data-custom="svcid=` + r.URL.Path + `&uid=` + usrID + `" 
+						data-custom="productID=` + r.URL.Path + `&uID=` + usrID + `" 
 						data-env="sandbox" 
 						href="https://sandbox.coinbase.com/checkouts/0025d69ea925b48ba2b7adeb2a911ca2" 
 					>Pay With Bitcoin</a>
 					<script src="https://sandbox.coinbase.com/assets/button.js" type="text/javascript"></script>				`
+
 				_, _ = btnLive, btnTest
 
 				backPath := strings.Replace(r.URL.Path, "/member", "", 1)
-				anchPath := fmt.Sprintf("<a href='%v'>Back to introduction</a><br><br>", backPath)
+				backAnch := fmt.Sprintf("<a href='%v'>Back to introduction</a><br>", backPath)
+
+				retrieveAgain, err := dsu.BufGet(appengine.NewContext(r), "dsu.WrapBlob__"+usr.ID)
+				lg(err)
+				buyStatus := ""
+				fullJSONData := ""
+				if err != nil {
+					buyStatus = "You have not bought this article yet.<br>"
+				} else {
+					buyStatus = fmt.Sprintf("status %v - UID %v Amount %v<br>",
+						retrieveAgain.Desc, retrieveAgain.Name, retrieveAgain.F)
+					// fullJSONData = "<pre>" + string(retrieveAgain.VByte) + "</pre>"
+				}
 
 				wpf(w,
 					tplx.ExecTplHelper(bstpl, map[string]interface{}{
 						"HtmlTitle":       "Access restricted",
 						"HtmlDescription": "", // reminder
-						"HtmlContent": template.HTML("Access is restricted<br>" + msg +
-							btnTest + "<br>" + anchPath)}))
+						"HtmlContent": template.HTML("Access is restricted<br>" +
+							msg +
+							btnLive + "<br>" +
+							backAnch +
+							buyStatus +
+							fullJSONData +
+							"<br>")}))
 
 				return
 			}
