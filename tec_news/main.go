@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"net/http"
 	"strings"
+	"time"
 
 	"appengine"
 
@@ -39,31 +40,53 @@ func init() {
 		lg, b := loghttp.BuffLoggerUniversal(w, r)
 		_ = b
 
-		if strings.Contains(r.URL.Path, "/member/") {
+		r.Header.Set("X-Custom-Header-Counter", "nocounter")
+		htmlfrag.SetNocacheHeaders(w)
+
+		if !strings.Contains(r.URL.Path, "/member/") {
+			serveFromRoot(w, r)
+
+		} else {
+
 			auth, usr, msg := oauthpb.Auth(r)
 			if msg != "" {
 				msg += "<br>"
 			}
 
-			if auth == false || true {
-				r.Header.Set("X-Custom-Header-Counter", "nocounter")
-				htmlfrag.SetNocacheHeaders(w)
-				bstpl := tplx.BootstrapTemplate(w, r)
+			usrID := "32168-unknown-user" // prevent method call on nil further down
+			if usr != nil {
+				usrID = usr.ID
+			}
 
-				usrID := "32168-unknown-user"
-				if usr != nil {
-					usrID = usr.ID
+			if auth == false {
+
+				w.Write([]byte(msg))
+				return
+
+			} else {
+
+				invoice, err := dsu.BufGet(appengine.NewContext(r), "dsu.WrapBlob__"+usrID+r.URL.Path)
+				lg(err)
+				buyStatus := ""
+				fullJSONData := ""
+				if err != nil {
+					buyStatus = "You have not bought this article yet.<br>"
+				} else {
+
+					tm := time.Unix(int64(invoice.I), 0)
+					buyStatus = fmt.Sprintf("status %v - UID %v Amount %v - at %v<br>",
+						invoice.Desc, invoice.Name, invoice.F, tm)
+					// fullJSONData = "<pre>" + string(invoice.VByte) + "</pre>"
+
+					if invoice.Desc == "completed" {
+						serveFromRoot(w, r)
+						return
+					}
+
 				}
 
-				btnLive := `
-					<div style='height:10px;'>&nbsp;</div>
-					<a class="coinbase-button" data-code="aa4e03abbc5e2f5321d27df32756a932" 
-						data-custom="productID=` + r.URL.Path + `&uID=` + usrID + `" 
-						href="https://www.coinbase.com/checkouts/aa4e03abbc5e2f5321d27df32756a932" 
-					>Pay With Bitcoin</a>
-					<script src="https://www.coinbase.com/assets/button.js" type="text/javascript"></script>
+				//
 
-				`
 				btnTest := `
 					<div style='height:10px;'>&nbsp;</div>
 					<a class="coinbase-button" 
@@ -72,25 +95,26 @@ func init() {
 						data-env="sandbox" 
 						href="https://sandbox.coinbase.com/checkouts/0025d69ea925b48ba2b7adeb2a911ca2" 
 					>Pay With Bitcoin</a>
-					<script src="https://sandbox.coinbase.com/assets/button.js" type="text/javascript"></script>				`
+					<script src="https://sandbox.coinbase.com/assets/button.js" type="text/javascript"></script>				
+				`
+
+				btnLive := `
+					<div style='height:10px;'>&nbsp;</div>
+					<a class="coinbase-button" 
+						data-code="aa4e03abbc5e2f5321d27df32756a932" 
+						data-custom="productID=` + r.URL.Path + `&uID=` + usrID + `" 
+						href="https://www.coinbase.com/checkouts/aa4e03abbc5e2f5321d27df32756a932" 
+					>Pay With Bitcoin</a>
+					<script src="https://www.coinbase.com/assets/button.js" type="text/javascript"></script>
+
+				`
 
 				_, _ = btnLive, btnTest
 
 				backPath := strings.Replace(r.URL.Path, "/member", "", 1)
 				backAnch := fmt.Sprintf("<a href='%v'>Back to introduction</a><br>", backPath)
 
-				retrieveAgain, err := dsu.BufGet(appengine.NewContext(r), "dsu.WrapBlob__"+usr.ID)
-				lg(err)
-				buyStatus := ""
-				fullJSONData := ""
-				if err != nil {
-					buyStatus = "You have not bought this article yet.<br>"
-				} else {
-					buyStatus = fmt.Sprintf("status %v - UID %v Amount %v<br>",
-						retrieveAgain.Desc, retrieveAgain.Name, retrieveAgain.F)
-					// fullJSONData = "<pre>" + string(retrieveAgain.VByte) + "</pre>"
-				}
-
+				bstpl := tplx.BootstrapTemplate(w, r)
 				wpf(w,
 					tplx.ExecTplHelper(bstpl, map[string]interface{}{
 						"HtmlTitle":       "Access restricted",
@@ -107,26 +131,6 @@ func init() {
 			}
 		}
 
-		c := appengine.NewContext(r)
-		appID := appengine.AppID(c)
-		if appID == "tec-news" {
-
-			fs2 := dsfs.New(
-				dsfs.MountName(tplx.TplPrefix[1:]),
-				dsfs.AeContext(appengine.NewContext(r)),
-			)
-			fs1.SetOption(
-				memfs.ShadowFS(fs2),
-			)
-
-			//
-			// TRICK
-			// Making FsiFileServer dream, that the request path contained the mount prefix
-			r.URL.Path = tplx.TplPrefix + r.URL.Path
-			fileserver.FsiFileServer(fs1, tplx.TplPrefix, w, r)
-		} else {
-			w.Write([]byte("app id is -" + appID + "- "))
-		}
 	}
 	http.HandleFunc("/", loghttp.Adapter(dynSrv))
 
@@ -184,5 +188,29 @@ func backendHandler(w http.ResponseWriter, r *http.Request) {
 	htmlfrag.Wb(w, "memfs reset", "/reset-memfs", " ")
 
 	wpf(w, coinbase.BackendUIRendered().String())
+
+}
+
+func serveFromRoot(w http.ResponseWriter, r *http.Request) {
+
+	appID := appengine.AppID(appengine.NewContext(r))
+	if appID == "tec-news" {
+
+		fs2 := dsfs.New(
+			dsfs.MountName(tplx.TplPrefix[1:]),
+			dsfs.AeContext(appengine.NewContext(r)),
+		)
+		fs1.SetOption(
+			memfs.ShadowFS(fs2),
+		)
+
+		//
+		// TRICK
+		// Making FsiFileServer dream, that the request path contained the mount prefix
+		r.URL.Path = tplx.TplPrefix + r.URL.Path
+		fileserver.FsiFileServer(fs1, tplx.TplPrefix, w, r)
+	} else {
+		w.Write([]byte("wrong app id: " + appID + "- "))
+	}
 
 }
