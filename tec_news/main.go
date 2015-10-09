@@ -187,6 +187,8 @@ func backendHandler(w http.ResponseWriter, r *http.Request) {
 	htmlfrag.Wb(w, "memfs dump", "/dump-memfs", " ")
 	htmlfrag.Wb(w, "memfs reset", "/reset-memfs", " ")
 
+	htmlfrag.Wb(w, "is this showing up?", "")
+
 	wpf(w, coinbase.BackendUIRendered().String())
 
 }
