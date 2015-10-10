@@ -1,0 +1,2 @@
+readable from appengine with ioutil.ReadFile( os.Getwd() + "/appaccess-only/test.txt" )<br>
+NOT readable via http://localhost:8087/appaccess-only/test.txt

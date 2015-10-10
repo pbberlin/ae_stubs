@@ -29,11 +29,13 @@ handlers:
   static_files: static/favicon.ico
   upload: static/favicon.ico
 
-
-- url: /static/app-accessible
-  static_dir: static/app-accessible
-  # Counts on quota. Only chart backgrounds
-  # and few images need to be opened by golang
+# make files readable by golang code via os.Open( os.Getwd() + "/appaccess-only/[filename] )
+# prevent http-based access, to make a safe storage for certificates etc. 
+# also for chart backgrounds etc.
+- url: /appaccess-only/(http_access_made_impossible.*)
+  static_files: appaccess-only/\1
+  upload: appaccess-only/.*
+  # Available to golang. Counts twice against quota. 
   application_readable: true
 
 # prevent conflict with /img served via dsfs-fileserver
