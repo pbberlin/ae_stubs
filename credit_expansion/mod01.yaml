@@ -38,6 +38,10 @@ handlers:
   # Available to golang. Counts twice against quota. 
   application_readable: true
 
+- url: /templates
+  static_dir: templates
+  application_readable: true
+
 # prevent conflict with /img served via dsfs-fileserver
 - url: /img-static
   static_dir: static/img
