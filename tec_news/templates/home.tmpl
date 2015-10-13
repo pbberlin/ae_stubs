@@ -21,20 +21,28 @@
   google.identitytoolkit.signInButton(
       '#navbar',
       {
-        widgetUrl: '{{.WidgetURL}}',
-        signOutUrl: '{{.SignOutURL}}'
+        widgetUrl:   '{{.WidgetURL}}',
+        signOutUrl:  '{{.SignOutURL}}'
       }
   );
 </script>
 <br>
-<p>Hello {{.User.Name}}</p>
+<p>Hello {{.User.Name}} ID: {{.User.ID}} Email: {{.User.Email}}</p>
+<p>
+  ID1: 00880189686365773816<br>
+  ID2: 03041685408461502545<br>
+  ID2: 14423325142879445183
+  </p>
+
+<p><a href="https://security.google.com/settings/security/permissions">Remove Google App Permissions</a></p>
+<p><a href="https://www.facebook.com/settings?tab=applications">Remove Facebook App Permissions</a></p>
+
 <p>Your favorite weekday:</p>
 <form method="POST" action="{{.UpdateWeekdayURL}}">
   <input type="hidden" name="xsrftoken" value="{{.UpdateWeekdayXSRFToken}}">
   <select name="favorite">
     {{range $index, $weekday := .Weekdays}}
-      <option value="{{$index}}" {{if eq $.WeekdayIndex $index}}selected{{end}}>{{$weekday}}</option>
-    {{end}}
+      <option value="{{$index}}" {{if eq $.WeekdayIndex $index}}selected{{end}}>{{$weekday}}</option>{{end}}
   </select>
   <button type="submit">change</button>
 </form>

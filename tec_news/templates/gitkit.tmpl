@@ -10,17 +10,21 @@
 <body>
 <div id="gitkitWidget"></div>
 <script type="text/javascript">
+
   google.identitytoolkit.start(
     '#gitkitWidget',
     {
-      apiKey: '{{.BrowserAPIKey}}',
+      apiKey:           '{{.BrowserAPIKey}}',
       signInSuccessUrl: '{{.SignInSuccessUrl}}',
-      oobActionUrl: '{{.OOBActionURL}}',
-	  "siteName": "tec-news-site-name",
-	  "signInOptions": ["google","facebook"]
+      signOutUrl:       '{{.SignOutURL}}',
+      oobActionUrl:     '{{.OOBActionURL}}',
+      signInOptions:    ['google','facebook'],
+      siteName:         'tec-news'
     },
     '{{.POSTBody}}');
   	  // "signInOptions": ["password","google","facebook"]
+
+      // siteName required for "manage account"
 </script>
 </body>
 </html>
