@@ -19,7 +19,6 @@ import (
 	_ "github.com/pbberlin/tools/email"
 	_ "github.com/pbberlin/tools/foscam"
 	_ "github.com/pbberlin/tools/net/http/proxy1"
-	_ "github.com/pbberlin/tools/oauthpb"
 	_ "github.com/pbberlin/tools/os/fsi/dsfs"
 	"github.com/pbberlin/tools/runtimepb"
 	_ "github.com/pbberlin/tools/util" // counter reset

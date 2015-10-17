@@ -10,6 +10,8 @@ import (
 
 	"appengine"
 
+	"github.com/pbberlin/tools/appengine/login"
+	_ "github.com/pbberlin/tools/appengine/login/gitkit"
 	"github.com/pbberlin/tools/dsu"
 	"github.com/pbberlin/tools/net/http/coinbase"
 	"github.com/pbberlin/tools/net/http/fileserver"
@@ -17,7 +19,6 @@ import (
 	"github.com/pbberlin/tools/net/http/loghttp"
 	"github.com/pbberlin/tools/net/http/tplx"
 	"github.com/pbberlin/tools/net/http/upload" // upload receive
-	"github.com/pbberlin/tools/oauthpb"
 	"github.com/pbberlin/tools/os/fsi/dsfs"
 	"github.com/pbberlin/tools/os/fsi/memfs"
 	"github.com/pbberlin/tools/os/fsi/webapi"
@@ -31,9 +32,11 @@ func init() {
 
 	upload.InitHandlers()
 	coinbase.InitHandlers()
+	tplx.InitHandlers()
+	login.InitHandlers()
 	http.HandleFunc(webapi.UriDeleteSubtree, loghttp.Adapter(webapi.DeleteSubtree))
 
-	http.HandleFunc("/backend-secret", backendHandler)
+	http.HandleFunc("/backend-reduced", backendHandler)
 
 	dynSrv := func(w http.ResponseWriter, r *http.Request, m map[string]interface{}) {
 
@@ -45,49 +48,49 @@ func init() {
 
 		if !strings.Contains(r.URL.Path, "/member/") {
 			serveFromRoot(w, r)
+			return
+		}
 
+		//
+		ok, usr, msg := login.CheckForNormalUser(r)
+		if msg != "" {
+			msg += "<br>"
+		}
+		if !ok {
+			w.Write([]byte(msg))
+			return
+		}
+
+		//
+		//
+		usrID := "32168-unknown-user" // prevent method call on nil further down
+		if usr != nil {
+			usrID = usr.ID
+		}
+
+		invoice, err := dsu.BufGet(appengine.NewContext(r), "dsu.WrapBlob__"+usrID+r.URL.Path)
+		lg(err)
+		buyStatus := ""
+		fullJSONData := ""
+		if err != nil {
+			buyStatus = "You have not bought this article yet.<br>"
 		} else {
 
-			auth, usr, msg := oauthpb.Auth(r)
-			if msg != "" {
-				msg += "<br>"
-			}
+			tm := time.Unix(int64(invoice.I), 0)
+			buyStatus = fmt.Sprintf("status %v - UID %v Amount %v - at %v<br>",
+				invoice.Desc, invoice.Name, invoice.F, tm)
+			// fullJSONData = "<pre>" + string(invoice.VByte) + "</pre>"
 
-			usrID := "32168-unknown-user" // prevent method call on nil further down
-			if usr != nil {
-				usrID = usr.ID
-			}
-
-			if auth == false {
-
-				w.Write([]byte(msg))
+			if invoice.Desc == "completed" {
+				serveFromRoot(w, r)
 				return
+			}
 
-			} else {
+		}
 
-				invoice, err := dsu.BufGet(appengine.NewContext(r), "dsu.WrapBlob__"+usrID+r.URL.Path)
-				lg(err)
-				buyStatus := ""
-				fullJSONData := ""
-				if err != nil {
-					buyStatus = "You have not bought this article yet.<br>"
-				} else {
+		//
 
-					tm := time.Unix(int64(invoice.I), 0)
-					buyStatus = fmt.Sprintf("status %v - UID %v Amount %v - at %v<br>",
-						invoice.Desc, invoice.Name, invoice.F, tm)
-					// fullJSONData = "<pre>" + string(invoice.VByte) + "</pre>"
-
-					if invoice.Desc == "completed" {
-						serveFromRoot(w, r)
-						return
-					}
-
-				}
-
-				//
-
-				btnTest := `
+		btnTest := `
 					<div style='height:10px;'>&nbsp;</div>
 					<a class="coinbase-button" 
 						data-code="0025d69ea925b48ba2b7adeb2a911ca2" 
@@ -98,7 +101,7 @@ func init() {
 					<script src="https://sandbox.coinbase.com/assets/button.js" type="text/javascript"></script>				
 				`
 
-				btnLive := `
+		btnLive := `
 					<div style='height:10px;'>&nbsp;</div>
 					<a class="coinbase-button" 
 						data-code="aa4e03abbc5e2f5321d27df32756a932" 
@@ -109,27 +112,25 @@ func init() {
 
 				`
 
-				_, _ = btnLive, btnTest
+		_, _ = btnLive, btnTest
 
-				backPath := strings.Replace(r.URL.Path, "/member", "", 1)
-				backAnch := fmt.Sprintf("<a href='%v'>Back to introduction</a><br>", backPath)
+		backPath := strings.Replace(r.URL.Path, "/member", "", 1)
+		backAnch := fmt.Sprintf("<a href='%v'>Back to introduction</a><br>", backPath)
 
-				bstpl := tplx.BootstrapTemplate(w, r)
-				wpf(w,
-					tplx.ExecTplHelper(bstpl, map[string]interface{}{
-						"HtmlTitle":       "Access restricted",
-						"HtmlDescription": "", // reminder
-						"HtmlContent": template.HTML("Access is restricted<br>" +
-							msg +
-							btnLive + "<br>" +
-							backAnch +
-							buyStatus +
-							fullJSONData +
-							"<br>")}))
+		bstpl := tplx.TemplateFromHugoPage(w, r)
 
-				return
-			}
-		}
+		wpf(w,
+			tplx.ExecTplHelper(bstpl, map[string]interface{}{
+				"HtmlTitle":       "Access restricted",
+				"HtmlDescription": "", // reminder
+				// "HtmlHeaders":     template.HTML(oauthpb.Headers),
+				"HtmlContent": template.HTML("Access is restricted<br>" +
+					msg +
+					btnLive + "<br>" +
+					backAnch +
+					buyStatus +
+					fullJSONData +
+					"<br>")}))
 
 	}
 	http.HandleFunc("/", loghttp.Adapter(dynSrv))
@@ -174,7 +175,16 @@ func backendHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.Header.Set("X-Custom-Header-Counter", "nocounter")
 
-	wpf(w, tplx.ExecTplHelper(tplx.Head, map[string]interface{}{"HtmlTitle": "Static uploading and file serving"}))
+	if ok, _, msg := login.CheckForAdminUser(r); !ok {
+		w.Write([]byte(msg))
+		return
+	}
+
+	wpf(w, tplx.ExecTplHelper(tplx.Head,
+		map[string]interface{}{
+			"HtmlTitle": "Static uploading and file serving",
+		}),
+	)
 	defer wpf(w, tplx.Foot)
 
 	htmlfrag.Wb(w, "secret backend", "")
@@ -188,6 +198,8 @@ func backendHandler(w http.ResponseWriter, r *http.Request) {
 	htmlfrag.Wb(w, "memfs reset", "/reset-memfs", " ")
 
 	wpf(w, coinbase.BackendUIRendered().String())
+	wpf(w, tplx.BackendUIRendered().String())
+	wpf(w, login.BackendUIRendered().String())
 
 }
 
