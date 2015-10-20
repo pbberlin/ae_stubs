@@ -11,7 +11,7 @@ import (
 	"appengine"
 
 	"github.com/pbberlin/tools/appengine/login"
-	_ "github.com/pbberlin/tools/appengine/login/gitkit"
+	"github.com/pbberlin/tools/appengine/login/gitkit1"
 	"github.com/pbberlin/tools/dsu"
 	"github.com/pbberlin/tools/net/http/coinbase"
 	"github.com/pbberlin/tools/net/http/fileserver"
@@ -28,12 +28,18 @@ var fs1 = memfs.New(
 	memfs.Ident(tplx.TplPrefix[1:]), // a closured variable in init() did not survive map-pointer reallocation
 )
 
+var (
+	successLandingURL = "/auth/signin-landing"
+	signoutLandingURL = "/auth/signout-landing"
+)
+
 func init() {
 
 	upload.InitHandlers()
 	coinbase.InitHandlers()
 	tplx.InitHandlers()
 	login.InitHandlers()
+	gitkit1.InitHandlers()
 	http.HandleFunc(webapi.UriDeleteSubtree, loghttp.Adapter(webapi.DeleteSubtree))
 
 	http.HandleFunc("/backend-reduced", backendHandler)
@@ -52,13 +58,23 @@ func init() {
 		}
 
 		//
-		ok, usr, msg := login.CheckForNormalUser(r)
-		if msg != "" {
-			msg += "<br>"
+		// ok, usr, msg := login.CheckForNormalUser(r)
+		// if msg != "" {
+		// 	msg += "<br>"
+		// }
+		// if !ok {
+		// 	w.Write([]byte(msg))
+		// 	return
+		// }
+
+		usr := gitkit1.CurrentUser(r)
+
+		if ok := gitkit1.IsSignedIn(r); !ok {
+			usr = nil
 		}
-		if !ok {
-			w.Write([]byte(msg))
-			return
+
+		if usr == nil {
+			http.Redirect(w, r, gitkit1.WidgetSigninAuthorizedRedirectURL+"?mode=select&user=wasNil&red="+r.URL.Path, http.StatusFound)
 		}
 
 		//
@@ -89,18 +105,18 @@ func init() {
 		}
 
 		//
-
-		btnTest := `
-					<div style='height:10px;'>&nbsp;</div>
-					<a class="coinbase-button" 
-						data-code="0025d69ea925b48ba2b7adeb2a911ca2" 
-						data-custom="productID=` + r.URL.Path + `&uID=` + usrID + `" 
-						data-env="sandbox" 
-						href="https://sandbox.coinbase.com/checkouts/0025d69ea925b48ba2b7adeb2a911ca2" 
-					>Pay With Bitcoin</a>
-					<script src="https://sandbox.coinbase.com/assets/button.js" type="text/javascript"></script>				
-				`
-
+		/*
+			btnTest := `
+						<div style='height:10px;'>&nbsp;</div>
+						<a class="coinbase-button"
+							data-code="0025d69ea925b48ba2b7adeb2a911ca2"
+							data-custom="productID=` + r.URL.Path + `&uID=` + usrID + `"
+							data-env="sandbox"
+							href="https://sandbox.coinbase.com/checkouts/0025d69ea925b48ba2b7adeb2a911ca2"
+						>Pay With Bitcoin</a>
+						<script src="https://sandbox.coinbase.com/assets/button.js" type="text/javascript"></script>
+					`
+		*/
 		btnLive := `
 					<div style='height:10px;'>&nbsp;</div>
 					<a class="coinbase-button" 
@@ -112,25 +128,23 @@ func init() {
 
 				`
 
-		_, _ = btnLive, btnTest
-
 		backPath := strings.Replace(r.URL.Path, "/member", "", 1)
 		backAnch := fmt.Sprintf("<a href='%v'>Back to introduction</a><br>", backPath)
 
 		bstpl := tplx.TemplateFromHugoPage(w, r)
 
-		wpf(w,
-			tplx.ExecTplHelper(bstpl, map[string]interface{}{
-				"HtmlTitle":       "Access restricted",
-				"HtmlDescription": "", // reminder
-				// "HtmlHeaders":     template.HTML(oauthpb.Headers),
-				"HtmlContent": template.HTML("Access is restricted<br>" +
-					msg +
-					btnLive + "<br>" +
-					backAnch +
-					buyStatus +
-					fullJSONData +
-					"<br>")}))
+		wpf(w, tplx.ExecTplHelper(bstpl, map[string]interface{}{
+			"HtmlTitle":       "Access restricted",
+			"HtmlDescription": "", // reminder
+			"HtmlHeaders":     template.HTML(gitkit1.Headers),
+			"HtmlContent": template.HTML("Access is restricted<br>" +
+				btnLive + "<br>" +
+				gitkit1.GetIDCardTpl(w, r, usr) +
+				// gitkit1.IDCardHTML + gitkit1.UserInfoHTML + "<br>" +
+				backAnch +
+				buyStatus +
+				fullJSONData +
+				"<br>")}))
 
 	}
 	http.HandleFunc("/", loghttp.Adapter(dynSrv))
@@ -200,6 +214,7 @@ func backendHandler(w http.ResponseWriter, r *http.Request) {
 	wpf(w, coinbase.BackendUIRendered().String())
 	wpf(w, tplx.BackendUIRendered().String())
 	wpf(w, login.BackendUIRendered().String())
+	wpf(w, gitkit1.BackendUIRendered().String())
 
 }
 
