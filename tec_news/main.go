@@ -58,7 +58,7 @@ func init() {
 		lg(err)
 
 		if !strings.Contains(r.URL.Path, "/member/") {
-			serveFromRoot(w, r)
+			serveFromRoot(w, r, map[string][]byte{})
 			return
 		}
 
@@ -93,26 +93,38 @@ func init() {
 		}))
 
 		invoice, err := dsu.BufGet(appengine.NewContext(r), "dsu.WrapBlob__"+usrID+r.URL.Path)
-		origTransactionMap := ""
 		lg(err)
 
+		origTransactionMap := ""
+		if len(invoice.VByte) > 0 && r.Form.Get("transaction-details") != "" {
+			origTransactionMap = "<br>\n<pre>" + string(invoice.VByte) + "</pre>"
+		}
+
 		buyStatus := ""
-		if err != nil || invoice.I == 0 || invoice.Name == "" {
+		if err != nil || invoice.I == 0 ||
+			invoice.Name == "" || invoice.Desc != "completed" {
 			buyStatus += "For this article we request a small contribution.<br>"
 			buyStatus += "You have not bought this article yet.<br>"
 		} else {
 
-			buyStatus += "Thanks for your business.<br>"
 			if r.Form.Get("noredirect") == "" {
-				tm := time.Unix(int64(invoice.I), 0)
-				buyStatus = fmt.Sprintf("status %v - UID %v - Amount %v - at %v<br>",
-					invoice.Desc, invoice.Name, invoice.F, tm)
-				origTransactionMap = "<pre>" + string(invoice.VByte) + "</pre>"
+				tm := time.Unix(int64(invoice.I), 0).Format("2006-01-02 at 15:04")
 
-				if invoice.Desc == "completed" {
-					serveFromRoot(w, r)
-					return
-				}
+				// Satoshi := invoice.F * (1000 * 1000 * 100)
+
+				buyStatus += fmt.Sprintf("You bought this article %v for %2.8f BTC.<br>",
+					tm, invoice.F)
+
+				backPath := strings.Replace(r.URL.Path, "/member", "", 1)
+				backAnch := fmt.Sprintf("<a href='%v'>Back to introduction</a>.<br>", backPath)
+				buyStatus += backAnch
+				buyStatus += "Thanks for your business.<br><br>"
+
+				serveFromRoot(w, r, map[string][]byte{
+					"<span id='REPLACE_BEFORE_CONTENT'></span>": []byte(buyStatus + origTransactionMap),
+					// "<span id='REPLACE_BEFORE_CONTENT'></span>": []byte(buyStatus),
+				})
+				return
 			}
 
 		}
@@ -217,7 +229,7 @@ func backendHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func serveFromRoot(w http.ResponseWriter, r *http.Request) {
+func serveFromRoot(w http.ResponseWriter, r *http.Request, replacements map[string][]byte) {
 
 	appID := appengine.AppID(appengine.NewContext(r))
 	if appID == AllowedAppID {
@@ -234,7 +246,7 @@ func serveFromRoot(w http.ResponseWriter, r *http.Request) {
 		// TRICK
 		// Making FsiFileServer dream, that the request path contained the mount prefix
 		r.URL.Path = tplx.TplPrefix + r.URL.Path
-		fileserver.FsiFileServer(fs1, tplx.TplPrefix, w, r)
+		fileserver.FsiFileServer(w, r, fileserver.Options{FS: fs1, Prefix: tplx.TplPrefix, Replacements: replacements})
 	} else {
 		w.Write([]byte("wrong app id: " + appID + "- "))
 	}
