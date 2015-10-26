@@ -12,6 +12,7 @@ import (
 
 	"github.com/pbberlin/tools/appengine/login"
 	"github.com/pbberlin/tools/appengine/login/gitkit1"
+	"github.com/pbberlin/tools/appengine/memcachepb"
 	"github.com/pbberlin/tools/dsu"
 	"github.com/pbberlin/tools/net/http/coinbase"
 	"github.com/pbberlin/tools/net/http/fileserver"
@@ -40,6 +41,7 @@ func init() {
 	tplx.InitHandlers()
 	login.InitHandlers()
 	gitkit1.InitHandlers()
+	memcachepb.InitHandlers()
 	http.HandleFunc(webapi.UriDeleteSubtree, loghttp.Adapter(webapi.DeleteSubtree))
 
 	http.HandleFunc("/backend-reduced", backendHandler)
@@ -51,6 +53,9 @@ func init() {
 
 		r.Header.Set("X-Custom-Header-Counter", "nocounter")
 		htmlfrag.SetNocacheHeaders(w)
+
+		err := r.ParseForm()
+		lg(err)
 
 		if !strings.Contains(r.URL.Path, "/member/") {
 			serveFromRoot(w, r)
@@ -68,11 +73,9 @@ func init() {
 		// }
 
 		usr := gitkit1.CurrentUser(r)
-
 		if ok := gitkit1.IsSignedIn(r); !ok {
 			usr = nil
 		}
-
 		if usr == nil {
 			http.Redirect(w, r, gitkit1.WidgetSigninAuthorizedRedirectURL+"?mode=select&user=wasNil&red="+r.URL.Path, http.StatusFound)
 		}
@@ -84,51 +87,44 @@ func init() {
 			usrID = usr.ID
 		}
 
+		someUserGreeting := new(bytes.Buffer)
+		wpf(someUserGreeting, tplx.ExecTplHelper(gitkit1.UserInfoHTML, map[string]interface{}{
+			"User": usr,
+		}))
+
 		invoice, err := dsu.BufGet(appengine.NewContext(r), "dsu.WrapBlob__"+usrID+r.URL.Path)
+		origTransactionMap := ""
 		lg(err)
+
 		buyStatus := ""
-		fullJSONData := ""
-		if err != nil {
-			buyStatus = "You have not bought this article yet.<br>"
+		if err != nil || invoice.I == 0 || invoice.Name == "" {
+			buyStatus += "For this article we request a small contribution.<br>"
+			buyStatus += "You have not bought this article yet.<br>"
 		} else {
 
-			tm := time.Unix(int64(invoice.I), 0)
-			buyStatus = fmt.Sprintf("status %v - UID %v Amount %v - at %v<br>",
-				invoice.Desc, invoice.Name, invoice.F, tm)
-			// fullJSONData = "<pre>" + string(invoice.VByte) + "</pre>"
+			buyStatus += "Thanks for your business.<br>"
+			if r.Form.Get("noredirect") == "" {
+				tm := time.Unix(int64(invoice.I), 0)
+				buyStatus = fmt.Sprintf("status %v - UID %v - Amount %v - at %v<br>",
+					invoice.Desc, invoice.Name, invoice.F, tm)
+				origTransactionMap = "<pre>" + string(invoice.VByte) + "</pre>"
 
-			if invoice.Desc == "completed" {
-				serveFromRoot(w, r)
-				return
+				if invoice.Desc == "completed" {
+					serveFromRoot(w, r)
+					return
+				}
 			}
 
 		}
 
-		//
-		/*
-			btnTest := `
-						<div style='height:10px;'>&nbsp;</div>
-						<a class="coinbase-button"
-							data-code="0025d69ea925b48ba2b7adeb2a911ca2"
-							data-custom="productID=` + r.URL.Path + `&uID=` + usrID + `"
-							data-env="sandbox"
-							href="https://sandbox.coinbase.com/checkouts/0025d69ea925b48ba2b7adeb2a911ca2"
-						>Pay With Bitcoin</a>
-						<script src="https://sandbox.coinbase.com/assets/button.js" type="text/javascript"></script>
-					`
-		*/
-		btnLive := `
-					<div style='height:10px;'>&nbsp;</div>
-					<a class="coinbase-button" 
-						data-code="aa4e03abbc5e2f5321d27df32756a932" 
-						data-custom="productID=` + r.URL.Path + `&uID=` + usrID + `" 
-						href="https://www.coinbase.com/checkouts/aa4e03abbc5e2f5321d27df32756a932" 
-					>Pay With Bitcoin</a>
-					<script src="https://www.coinbase.com/assets/button.js" type="text/javascript"></script>
+		btnHTML := fmt.Sprintf(coinbase.BtnLiveFormat, r.URL.Path, usrID)
+		if r.Form.Get("dbg") > "05" {
+			// coded hint, that we are in testing mode
+			btnHTML = fmt.Sprintf(coinbase.BtnTestFormat, r.URL.Path, usrID)
+			btnHTML += "<div style='display:inline-block;font-size:12px;margin-top:-20px;vertical-align:middle'>coinbase</div>"
+		}
 
-				`
-
-		backPath := strings.Replace(r.URL.Path, "/member", "", 1)
+		backPath := strings.Replace(r.URL.Path, "/member", "/transition", 1)
 		backAnch := fmt.Sprintf("<a href='%v'>Back to introduction</a><br>", backPath)
 
 		bstpl := tplx.TemplateFromHugoPage(w, r)
@@ -137,14 +133,17 @@ func init() {
 			"HtmlTitle":       "Access restricted",
 			"HtmlDescription": "", // reminder
 			"HtmlHeaders":     template.HTML(gitkit1.Headers),
-			"HtmlContent": template.HTML("Access is restricted<br>" +
-				btnLive + "<br>" +
-				gitkit1.GetIDCardTpl(w, r, usr) +
-				// gitkit1.IDCardHTML + gitkit1.UserInfoHTML + "<br>" +
-				backAnch +
-				buyStatus +
-				fullJSONData +
-				"<br>")}))
+			"HtmlContent": template.HTML(
+				gitkit1.GetIDCardTpl(w, r, usr) + "<br>" +
+					buyStatus +
+					btnHTML + "<br>" + "<br>" +
+					someUserGreeting.String() + "<br>" +
+					backAnch +
+					origTransactionMap +
+					"<br>"),
+		},
+		),
+		)
 
 	}
 	http.HandleFunc("/", loghttp.Adapter(dynSrv))
@@ -176,7 +175,7 @@ func init() {
 	http.HandleFunc("/reset-memfs", loghttp.Adapter(resetMemfs))
 }
 
-var wpf = fmt.Fprint
+var wpf = fmt.Fprintf
 
 func backendHandler(w http.ResponseWriter, r *http.Request) {
 
