@@ -108,20 +108,27 @@ func init() {
 		} else {
 
 			if r.Form.Get("noredirect") == "" {
-				tm := time.Unix(int64(invoice.I), 0).Format("2006-01-02 at 15:04")
 
-				// Satoshi := invoice.F * (1000 * 1000 * 100)
+				idc := "<br>" + gitkit1.GetIDCardTpl(w, r, usr)
 
-				buyStatus += fmt.Sprintf("You bought this article %v for %2.8f BTC.<br>",
-					tm, invoice.F)
+				tm := time.Unix(int64(invoice.I), 0).Format("02 Jan 2006 at 15:04")
+
+				Satoshi := int64(invoice.F * (1000 * 1000 * 100))
+
+				// buyStatus += fmt.Sprintf("You bought this article %v for %2.8f BTC.<br>", tm, invoice.F)
+				buyStatus += "<div style='font-size:80%;line-height:135%;'>"
+				buyStatus += fmt.Sprintf("You bought this article on %v for %v Satoshi.<br>", tm, Satoshi)
+				buyStatus += "Thanks for your business. Read your purchased article below."
+				buyStatus += "</div>"
+				buyStatus += "<hr>"
 
 				backPath := strings.Replace(r.URL.Path, "/member", "", 1)
-				backAnch := fmt.Sprintf("<a href='%v'>Back to introduction</a>.<br>", backPath)
-				buyStatus += backAnch
-				buyStatus += "Thanks for your business.<br><br>"
+				backAnch := fmt.Sprintf("<br><a href='%v'>Back to introduction</a>.<br>", backPath)
 
 				serveFromRoot(w, r, map[string][]byte{
-					"<span id='REPLACE_BEFORE_CONTENT'></span>": []byte(buyStatus + origTransactionMap),
+					"</head>": []byte(gitkit1.Headers + "\n</head>"),
+					"<span id='REPLACE_BEFORE_CONTENT'></span>": []byte(idc + buyStatus + origTransactionMap),
+					"<span id='REPLACE_AFTER_CONTENT'></span>":  []byte(backAnch),
 					// "<span id='REPLACE_BEFORE_CONTENT'></span>": []byte(buyStatus),
 				})
 				return
@@ -146,7 +153,8 @@ func init() {
 			"HtmlDescription": "", // reminder
 			"HtmlHeaders":     template.HTML(gitkit1.Headers),
 			"HtmlContent": template.HTML(
-				gitkit1.GetIDCardTpl(w, r, usr) + "<br>" +
+				"<br>" +
+					gitkit1.GetIDCardTpl(w, r, usr) + "<br>" +
 					buyStatus +
 					btnHTML + "<br>" + "<br>" +
 					someUserGreeting.String() + "<br>" +
