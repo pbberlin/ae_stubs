@@ -1,2 +1,3 @@
 appcfg.py --email=peter.buchmann@web.de update  mod01.yaml 
-pause
+REM pause
+timeout /T 20 > nul

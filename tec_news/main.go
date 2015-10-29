@@ -7,8 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"appengine"
-
 	"github.com/pbberlin/tools/appengine/login"
 	"github.com/pbberlin/tools/appengine/login/gitkit1"
 	"github.com/pbberlin/tools/appengine/memcachepb"
@@ -22,6 +20,7 @@ import (
 	"github.com/pbberlin/tools/os/fsi/dsfs"
 	"github.com/pbberlin/tools/os/fsi/memfs"
 	"github.com/pbberlin/tools/os/fsi/webapi"
+	"google.golang.org/appengine"
 )
 
 var fs1 = memfs.New(
@@ -155,19 +154,34 @@ func init() {
 		}
 
 		// Not bought yet
-		buyStatus += "For this article we request <i>52 Cents</i> compensation via Bitcoin.<br>"
+		idxPrefix := "<div style='font-size:85%;margin-bottom:-4px;'> &nbsp; You are logged in</div>"
+		idc = idxPrefix + idc
+
+		buyStatus += "<div style='margin-top: 24px; font-size:110%;'>For this article we ask for a compensation of  <i>52 Cents</i>.</div>"
 		// buyStatus += "You have not bought this article yet.<br>"
 
-		btnHTML := fmt.Sprintf(coinbase.BtnLiveFormat, r.URL.Path, usrID)
+		btnHTML := fmt.Sprintf(coinbase.BtnLiveFormat, memberPath, usrID)
 		if r.Form.Get("dbg") > "05" {
 			// coded hint, that we are in testing mode
-			btnHTML = fmt.Sprintf(coinbase.BtnTestFormat, r.URL.Path, usrID)
+			btnHTML = fmt.Sprintf(coinbase.BtnTestFormat, memberPath, usrID)
 			btnHTML += "<div style='display:inline-block;font-size:12px;margin-top:-20px;vertical-align:middle'>coinbase</div>"
+		}
+
+		// Not logged in yet
+		if usr == nil {
+
+			claim := "<div style='font-size:120%%;margin-top:-16px;font-weight:bold;'>Get the <b><a href='%v'>Article</a></b></div>"
+			idc = fmt.Sprintf(claim,
+				gitkit1.WidgetSigninAuthorizedRedirectURL+"?mode=select&user=wasNil&red="+r.URL.Path)
+			buyStatus = ""
+			btnHTML = ""
 		}
 
 		serveFromRoot(w, r, map[string][]byte{
 			"</head>": []byte(gitkit1.Headers + "\n</head>"),
-			"<span id='REPLACE_MID_CONTENT'></span>": []byte(idc + buyStatus +
+			"<span id='REPLACE_MID_CONTENT'></span>": []byte("" +
+				idc +
+				buyStatus +
 				btnHTML + "<br>" +
 				// someUserGreeting.String() + "<br>" +
 				origTransactionMap,
