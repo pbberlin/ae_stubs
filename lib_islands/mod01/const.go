@@ -2,9 +2,9 @@ package main
 
 import "github.com/pbberlin/tools/net/http/routes"
 
-const AllowedAppID = "tec-news"
-const DevServerPort = "8087"
-const DevServerAdmin = "8002"
+const AllowedAppID = "libertarian-islands"
+const DevServerPort = "8085"
+const DevServerAdmin = "8000"
 
 func init() {
 	routes.InitAppHost(AllowedAppID, DevServerPort, DevServerAdmin)
