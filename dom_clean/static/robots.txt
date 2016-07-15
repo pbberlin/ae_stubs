@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /unsinn/
+Disallow: /temp/
+Disallow: /newsticker.shtml
+Disallow: /backend/
