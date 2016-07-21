@@ -24,34 +24,83 @@ func param(r *http.Request, key string) string {
 	return ""
 }
 
+func paramInt(r *http.Request, key string) int {
+	str := param(r, key)
+	integer, err := strconv.Atoi(str)
+	if err != nil {
+		integer = 0
+	}
+	return integer
+}
+
 type FlyingPathT struct {
+	OTreeUserId        int    `json:"otree_user_id"`
+	OTreeUserIdComment string `json:"otree_user_id_comment"`
+
 	Draws   int `json:"number_of_draws"`
 	Periods int `json:"number_of_periods"`
 
-	MinSlow int `json:"min_number_slow_sims"`
-	MinFast int `json:"min_number_fast_sims"`
+	MinSlow        int    `json:"min_number_slow_sims"`
+	MinSlowComment string `json:"min_number_slow_sims_comment"`
+	MinFast        int    `json:"min_number_fast_sims"`
 
 	YMin int `json:"y_min"`
 	YMax int `json:"y_max"`
 
+	Wealth0         int `json:"wealth0"` // wealth at the start of the simulation
 	WealtMultiplier int `json:"wealth_multiplier"`
 
-	Wealth0 int `json:"wealth0"` // wealth at the start of the simulation
+	DataPointNumbers        bool   `json:"indicator_numbers"` // chart: show numbers next to datapoints
+	DataPointNumbersComment string `json:"indicator_numbers_comment"`
 
-	DataPointNumbers bool `json:"indicator_numbers"` // chart: show numbers next to datapoints
-
-	Payments [][]int `json:"payments"` // payment
-	Wealth   [][]int `json:"wealth"`   // summed up payments; redundant
+	PaymentsWealthComment string  `json:"payments_wealth_comment"`
+	Payments              [][]int `json:"payments"` // payment
+	Wealth                [][]int `json:"wealth"`   // summed up payments; redundant
 }
 
 var FP = FlyingPathT{}
 
 func init() {
 
+	//
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		cnt := fmt.Sprintf("<a href='%v'> Get random flying path data in JSON format</a> <br />", dataUrl)
+		w.Write([]byte(cnt))
+		cnt = fmt.Sprintf("<a href='%v?keep=10'>Keep first 10 realizations</a> <br />", dataUrl)
+		w.Write([]byte(cnt))
+		cnt = fmt.Sprintf("<a href='%v?draws=10&periods=10'>10 draws - 10 periods</a> <br />", dataUrl)
+		w.Write([]byte(cnt))
+	})
+	http.HandleFunc("/xxx", flyingPathData)
+	http.HandleFunc(dataUrl, flyingPathData)
+
+	FP.OTreeUserId = 32168
+	FP.OTreeUserIdComment = `Save into global JavaScript variable so that code can be instrumented with it.
+
+			var lnk = document.getElementById("xx");
+			lnk.onclick  = function(){
+			  console.log("i was clicked");
+			};
+			
+			
+			function wrapFunc(func, message) {
+				return function () {
+					func();
+					console.log(message);
+				}
+			}
+
+			lnk.onclick = wrapFunc(lnk.onclick, "now some log msg");
+
+	`
+
 	FP.Draws = 10000
 	FP.Periods = 35
+	FP.PaymentsWealthComment = "Wealth is of course redundant. It can be created by summing up the payments."
+	FP.initStructSlices()
 
 	FP.MinSlow = 10
+	FP.MinSlowComment = "If zero: Start immediately in fast mode. Otherwise indicates appearance of button allowing user to advance to fast mode."
 	FP.MinFast = 50
 
 	FP.YMin = -100
@@ -60,14 +109,20 @@ func init() {
 	FP.Wealth0 = 0
 	FP.WealtMultiplier = 10
 
+	FP.DataPointNumbersComment = "Show numbers next to datapoints in Charts"
+
 	FP.DataPointNumbers = false
 
-	FP.Payments = make([][]int, FP.Draws, FP.Draws)
-	FP.Wealth = make([][]int, FP.Draws, FP.Draws)
+}
 
-	for i := 0; i < FP.Draws; i++ {
-		FP.Payments[i] = make([]int, FP.Periods, FP.Periods)
-		FP.Wealth[i] = make([]int, FP.Periods, FP.Periods)
+func (f *FlyingPathT) initStructSlices() {
+
+	// We could re-adjust slice lengths for already existing slices, but we are too lazy
+	f.Payments = make([][]int, f.Draws, f.Draws)
+	f.Wealth = make([][]int, f.Draws, f.Draws)
+	for i := 0; i < f.Draws; i++ {
+		f.Payments[i] = make([]int, f.Periods, f.Periods)
+		f.Wealth[i] = make([]int, f.Periods, f.Periods)
 	}
 
 }
@@ -77,10 +132,18 @@ func flyingPathData(w http.ResponseWriter, r *http.Request) {
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 
-	keep := param(r, "keep")
-	iKeep, err := strconv.Atoi(keep)
-	if err != nil {
-		iKeep = 0
+	iKeep := paramInt(r, "keep")
+
+	draws := paramInt(r, "draws")
+	periods := paramInt(r, "periods")
+	if draws > 0 {
+		FP.Draws = draws
+	}
+	if periods > 0 {
+		FP.Periods = periods
+	}
+	if draws > 0 || periods > 0 {
+		FP.initStructSlices()
 	}
 
 	for i := 0; i < FP.Draws; i++ {
@@ -110,19 +173,5 @@ func flyingPathData(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
-
-}
-
-func init() {
-
-	//
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		cnt := fmt.Sprintf("<a href='%v'> Get random flying path data in JSON format</a> <br />", dataUrl)
-		w.Write([]byte(cnt))
-		cnt = fmt.Sprintf("<a href='%v?keep=10'>Keep first 10 realizations</a> <br />", dataUrl)
-		w.Write([]byte(cnt))
-	})
-	http.HandleFunc("/xxx", flyingPathData)
-	http.HandleFunc(dataUrl, flyingPathData)
 
 }
