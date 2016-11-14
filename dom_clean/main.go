@@ -1,177 +1,164 @@
 package main
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
-	"math/rand"
+	"mime"
 	"net/http"
-	"strconv"
-	"time"
+	"path"
+	"strings"
+
+	"golang.org/x/net/html"
+	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
+
+	"github.com/pbberlin/tools/appengine/util_appengine"
+	"github.com/pbberlin/tools/net/http/domclean2"
+	"github.com/pbberlin/tools/net/http/fetch"
+	"github.com/pbberlin/tools/net/http/routes"
+	"github.com/pbberlin/tools/net/http/tplx"
 )
 
-var (
-	dataUrl = "/otree/data"
-)
-
-func param(r *http.Request, key string) string {
-	values := r.URL.Query()
-	for lpkey, sl := range values {
-		if lpkey == key {
-			last := len(sl)
-			return sl[last-1]
-		}
-	}
-	return ""
-}
-
-func paramInt(r *http.Request, key string) int {
-	str := param(r, key)
-	integer, err := strconv.Atoi(str)
-	if err != nil {
-		integer = 0
-	}
-	return integer
-}
-
-type FlyingPathT struct {
-	OTreeUserId        int    `json:"otree_user_id"`
-	OTreeUserIdComment string `json:"otree_user_id_comment"`
-
-	Draws   int `json:"number_of_draws"`
-	Periods int `json:"number_of_periods"`
-
-	MinSlow        int    `json:"min_number_slow_sims"`
-	MinSlowComment string `json:"min_number_slow_sims_comment"`
-	MinFast        int    `json:"min_number_fast_sims"`
-
-	YMin int `json:"y_min"`
-	YMax int `json:"y_max"`
-
-	Wealth0         int `json:"wealth0"` // wealth at the start of the simulation
-	WealtMultiplier int `json:"wealth_multiplier"`
-
-	DataPointNumbers        bool   `json:"indicator_numbers"` // chart: show numbers next to datapoints
-	DataPointNumbersComment string `json:"indicator_numbers_comment"`
-
-	PaymentsWealthComment string  `json:"payments_wealth_comment"`
-	Payments              [][]int `json:"payments"` // payment
-	Wealth                [][]int `json:"wealth"`   // summed up payments; redundant
-}
-
-var FP = FlyingPathT{}
+const ProxifyURI = "/"
 
 func init() {
-
-	//
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		cnt := fmt.Sprintf("<a href='%v'> Get random flying path data in JSON format</a> <br />", dataUrl)
-		w.Write([]byte(cnt))
-		cnt = fmt.Sprintf("<a href='%v?keep=10'>Keep first 10 realizations</a> <br />", dataUrl)
-		w.Write([]byte(cnt))
-		cnt = fmt.Sprintf("<a href='%v?draws=10&periods=10'>10 draws - 10 periods</a> <br />", dataUrl)
-		w.Write([]byte(cnt))
-	})
-	http.HandleFunc("/xxx", flyingPathData)
-	http.HandleFunc(dataUrl, flyingPathData)
-
-	FP.OTreeUserId = 32168
-	FP.OTreeUserIdComment = `Save into global JavaScript variable so that code can be instrumented with it.
-
-			var lnk = document.getElementById("xx");
-			lnk.onclick  = function(){
-			  console.log("i was clicked");
-			};
-			
-			
-			function wrapFunc(func, message) {
-				return function () {
-					func();
-					console.log(message);
-				}
-			}
-
-			lnk.onclick = wrapFunc(lnk.onclick, "now some log msg");
-
-	`
-
-	FP.Draws = 10000
-	FP.Periods = 35
-	FP.PaymentsWealthComment = "Wealth is of course redundant. It can be created by summing up the payments."
-	FP.initStructSlices()
-
-	FP.MinSlow = 10
-	FP.MinSlowComment = "If zero: Start immediately in fast mode. Otherwise indicates appearance of button allowing user to advance to fast mode."
-	FP.MinFast = 50
-
-	FP.YMin = -100
-	FP.YMax = 100
-
-	FP.Wealth0 = 0
-	FP.WealtMultiplier = 10
-
-	FP.DataPointNumbersComment = "Show numbers next to datapoints in Charts"
-
-	FP.DataPointNumbers = false
-
+	http.HandleFunc(ProxifyURI, HandleFetchURLClassic)
 }
 
-func (f *FlyingPathT) initStructSlices() {
+// handleFetchURL either displays a form for requesting an url
+// or it returns the URL´s contents.
+func HandleFetchURLClassic(w http.ResponseWriter, r *http.Request) {
 
-	// We could re-adjust slice lengths for already existing slices, but we are too lazy
-	f.Payments = make([][]int, f.Draws, f.Draws)
-	f.Wealth = make([][]int, f.Draws, f.Draws)
-	for i := 0; i < f.Draws; i++ {
-		f.Payments[i] = make([]int, f.Periods, f.Periods)
-		f.Wealth[i] = make([]int, f.Periods, f.Periods)
+	ctx := appengine.NewContext(r)
+
+	// on live server => always use https
+	if r.URL.Scheme != "https" && !util_appengine.IsLocalEnviron() {
+		r.URL.Scheme = "https"
+		r.URL.Host = r.Host
+		log.Infof(ctx, "lo - redirect %v", r.URL.String())
+		http.Redirect(w, r, r.URL.String(), http.StatusFound)
 	}
 
-}
-
-func flyingPathData(w http.ResponseWriter, r *http.Request) {
-
-	s1 := rand.NewSource(time.Now().UnixNano())
-	r1 := rand.New(s1)
-
-	iKeep := paramInt(r, "keep")
-
-	draws := paramInt(r, "draws")
-	periods := paramInt(r, "periods")
-	if draws > 0 {
-		FP.Draws = draws
-	}
-	if periods > 0 {
-		FP.Periods = periods
-	}
-	if draws > 0 || periods > 0 {
-		FP.initStructSlices()
+	/*
+		To distinguish between posted and getted value,
+		we check the "post-only" slice of values first.
+		If nothing's there, but FormValue *has* a value,
+		then it was "getted", otherwise "posted"
+	*/
+	rURL := ""
+	urlAs := ""
+	err := r.ParseForm()
+	log.Errorf(ctx, "%v", err)
+	if r.PostFormValue(routes.URLParamKey) != "" {
+		urlAs += "url posted "
+		rURL = r.PostFormValue(routes.URLParamKey)
 	}
 
-	for i := 0; i < FP.Draws; i++ {
-		for j := iKeep; j < FP.Periods; j++ {
-			draw := r1.Intn(2)
-			if draw == 0 {
-				draw = -1
-			}
-			FP.Payments[i][j] = draw * FP.WealtMultiplier
-			if j > 0 {
-				FP.Wealth[i][j] = FP.Wealth[i][j-1] + FP.Payments[i][j]
-			} else {
-				FP.Wealth[i][j] = FP.Wealth0 + FP.Payments[i][j]
-			}
+	if r.FormValue(routes.URLParamKey) != "" {
+		if rURL == "" {
+			urlAs += "url getted "
+			rURL = r.FormValue(routes.URLParamKey)
 		}
 	}
+	// log(ctx,"received %v:  %q", urlAs, rURL)
 
-	// str := util.IndentedDump(FP)
-	// log.Printf("%v", str)
+	if len(rURL) == 0 {
 
-	js, err := json.MarshalIndent(FP, "", "\t")
-	if err != nil {
-		w.Write([]byte(err.Error()))
-		return
+		tplAdder, tplExec := tplx.FuncTplBuilder(w, r)
+		tplAdder("n_html_title", "Fetch some http data", nil)
+
+		m := map[string]string{
+			"protocol": "https",
+			"host":     r.Host, // not  fetch.HostFromReq(r)
+			"path":     ProxifyURI,
+			"name":     routes.URLParamKey,
+			"val":      "google.com",
+		}
+		if util_appengine.IsLocalEnviron() {
+			m["protocol"] = "http"
+		}
+		tplAdder("n_cont_0", c_formFetchUrl, m)
+		tplExec(w, r)
+
+	} else {
+
+		r.Header.Set("X-Custom-Header-Counter", "nocounter")
+
+		bts, inf, err := fetch.UrlGetter(r, fetch.Options{URL: rURL})
+		log.Errorf(ctx, "%v", err)
+
+		tp := mime.TypeByExtension(path.Ext(inf.URL.Path))
+		if false {
+			ext := path.Ext(rURL)
+			ext = strings.ToLower(ext)
+			tp = mime.TypeByExtension(ext)
+		}
+		w.Header().Set("Content-Type", tp)
+		// w.Header().Set("Content-type", "text/html; charset=latin-1")
+
+		if r.FormValue("dbg") != "" {
+			w.Header().Set("Content-type", "text/html; charset=utf-8")
+			fmt.Fprintf(w, "%s<br>\n  %s<br>\n %v", inf.URL.Path, tp, inf.URL.String())
+			return
+		}
+
+		opts := domclean2.CleaningOptions{Proxify: true}
+		opts.Beautify = true // "<a> Linktext without trailing space"
+		opts.RemoteHost = fetch.HostFromStringUrl(rURL)
+
+		// opts.ProxyHost = routes.AppHost()
+		opts.ProxyHost = fetch.HostFromReq(r)
+		if !util_appengine.IsLocalEnviron() {
+			opts.ProxyHost = fetch.HostFromReq(r)
+		}
+
+		doc, err := domclean2.DomClean(bts, opts)
+
+		var bufRend bytes.Buffer
+		err = html.Render(&bufRend, doc)
+		log.Errorf(ctx, "%v", err)
+		w.Write(bufRend.Bytes())
+
 	}
-	// log.Printf("%v", js)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(js)
 
 }
+
+const c_formFetchUrl = `
+
+	<style> .ib { display:inline-block; }</style>
+	<form action="{{.protocol}}://{{.host}}{{.path}}" method="post" >
+	  <div style='margin:8px;'>
+
+	  	<span class='ib' style='width:99%'>
+	  		URL<br />
+	  		<input id='i1' name="{{.name}}"	style='width:90%;height:96px;'
+	  			size="80"  
+	  	  		xxvalue="{{.val}}"
+	  	  		value=""
+	  		>
+	  	 </span>
+
+  		<br/>
+
+		<span class='ib' style='width:99%'>&nbsp;</span>
+		  <a href='#' onclick='document.getElementById("i1").value=""' style='font-size:42px;' 
+		  >Clear</a>
+		</span>
+
+  		<br/>
+  		<br/>
+  		<br/>
+
+		<span class='ib' style='width:99%'>
+			Put into pre tags 
+			<input name="renderInPre"	size="4"	value='' ><br/>
+		</span>
+
+  		<br/>
+	
+		<input type="submit" value="Fetch" accesskey='f'  style='width:90%;height:96px;'>
+
+	</div>
+	</form>
+
+`
