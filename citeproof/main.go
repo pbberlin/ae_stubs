@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/zew/exceldb/dom/clean"
 	"github.com/zew/exceldb/dom/ui"
 )
@@ -13,5 +15,8 @@ func init() {
 	cf.Apply(opt1, opt1)
 
 	ui.ExplicitInit()
+
+	http.HandleFunc("/put", put)
+	http.HandleFunc("/query-pages", queryPages)
 
 }
