@@ -13,10 +13,10 @@ indexes:
 - kind: HtmlPage
   properties:
   - name: Url
-  - name: Unixtime
+  - name: UnixTs
 
-- kind: ShardData
+- kind: HtmlPage
   properties:
-  - name: Name
-  - name: ShardId
-    direction: desc
+  - name: Val
+  - name: Url
+  - name: UnixTs

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <script type="text/javascript">
+        var dest;
+        function func01(src,arg1){
+            src.style.color = arg1;
+            console.log("func01 start");
+
+            var me = window.href;
+            me = "http://www.google.com";
+            me = "http://citeproof.appspot.com/templates/target.html";
+            var windowName = "research";
+
+            dest = window.open(me, windowName, "top=100,left=50,height=480,width=640");
+            console.log("func01 stop");
+            return false;
+        }
+
+    </script>
+    <a  
+        onclick="func01(this,'red');return false;" 
+        accesskey="o" 
+        href="#" 
+        target="research" 
+    >Open</a>
+
+</body>
+</html>

@@ -11,7 +11,6 @@
   		<input id='i1' name="{{.UrlParamKey}}"	style='width:90%;height:96px;'
   			size="80"  
   	  		value="{{.Url}}"
-  	  		value=""
   		>
   	 </span>
 
@@ -41,12 +40,21 @@
 
 	Skip Proxify <input type="checkbox" name="skip_proxify" 
 		value="true"  
-		{{if eq true .SkipProxify}}checked{{end}} 
+		{{if eq true .ProcessOptions.SkipProxify}}checked{{end}} 
 	>
 
-	Purge Scripts and Styles<input type="checkbox" name="purge_scripts_and_styles" 
+	<br>
+
+	Skip Purge Scripts and Styles <input type="checkbox" name="skip_purge_scripts_and_styles" 
 		value="true"  
-		{{if eq true .PurgeScriptsAndStyles}}checked{{end}} 
+		{{if eq true .ProcessOptions.SkipPurgeScriptsAndStyles}}checked{{end}} 
+	>
+
+	<br>
+
+	Skip Image to Link <input type="checkbox" name="skip_img2link" 
+		value="true"  
+		{{if eq true .ProcessOptions.SkipImage2Link}}checked{{end}} 
 	>
 
 
