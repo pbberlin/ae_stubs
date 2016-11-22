@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/zew/exceldb/dom/clean"
-	"github.com/zew/exceldb/dom/ui"
+	"github.com/pbberlin/dom/clean"
+	"github.com/pbberlin/dom/ui"
 )
 
 var cf clean.Config = clean.GetDefaultConfig()
