@@ -12,6 +12,19 @@ indexes:
 
 - kind: HtmlPage
   properties:
+  - name: Param
+  - name: Url
+  - name: UnixTs
+
+- kind: HtmlPage
+  properties:
+  - name: Param
+  - name: Val
+  - name: Url
+  - name: UnixTs
+
+- kind: HtmlPage
+  properties:
   - name: Url
   - name: UnixTs
 
