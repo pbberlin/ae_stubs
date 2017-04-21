@@ -1,7 +1,3 @@
-application: citeproof
-module: default
-#module: mod01
-version: v2
 runtime: go
 api_version: go1
 #instance_class: B1
